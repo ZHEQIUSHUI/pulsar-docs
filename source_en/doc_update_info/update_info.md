@@ -1,7 +1,7 @@
-# 文档修改与发布说明
+## Document Modification and Release Notes
 
-## 修改记录
+## Modification History
 
-| 文档版本 | 发布日期 | 修改说明 |
+| Document Version | Release Date | Revision Notes |
 | --- | --- | --- |
-| V001 | 2022-07-20 | 第一次正式发版 |
+| V001 | 2022-07-20 | First official release |

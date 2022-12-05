@@ -3,13 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-AXera Pulsar 工具链指导手册
-=======================================
+AXera Pulsar Toolchain Instruction Manual
+==============================================================================
 
 .. toctree::
   :maxdepth: 2
   :numbered:
-  :caption: Pulsar 工具链
+  :caption: Pulsar Toolchain
   :name: Pulsar
 
   doc_update_info/update_info.md
@@ -23,7 +23,7 @@ AXera Pulsar 工具链指导手册
 .. toctree::
   :maxdepth: 1
   :numbered:
-  :caption: 附录
+  :caption: Appendix
   :name: appendix
 
   appendix/op_support_list.rst

@@ -1,24 +1,24 @@
 ========================================
-Pulsar工具链概述
+Pulsar Toolchain Overview
 ========================================
 
 ----------------------------
-简介
+Introduction
 ----------------------------
 
-**Pulsar** 由 `爱芯元智 <https://www.axera-tech.com/>`_ **自主研发** 的 ``all-in-one`` 神经网络编译器, 
-即 **转换**、 **量化**、 **编译**、 **异构** 四合一, 实现深度学习神经网络模型 **快速**、 **高效** 的部署需求. 
-针对 `AX6` 系列芯片特性进行了深度定制优化, 充分发挥片上异构计算单元(CPU+NPU)算力, 提升神经网络模型的产品部署效率.
+**Pulsar** is an ``all-in-one`` neural network compiler developed by `Irisoft <https://www.axera-tech.com/>`_ **self-developed**, 
+It is a quadruple-play of **conversion**, **quantization**, **compilation**, and **heterogeneous** to achieve **fast** and **efficient** deployment of deep learning neural network models. 
+We have optimized the features of `AX6` series chips to fully utilize the computing power of on-chip heterogeneous computing units (CPU+NPU) and improve the efficiency of neural network model deployment.
 
-``Pulsar`` 工具链核心功能是将 ``.onnx`` 模型编译成芯片能解析并运行的 ``.joint`` 模型.
+The core function of the ``Pulsar`` toolchain is to compile ``.onnx`` models into ``.joint`` models that can be parsed and run by the chip.
 
-**架构图**
+**Architectural diagram**
 
 .. figure:: ../media/pulsar-arch.png
     :alt: Chip
     :align: center
 
-**部署流程**
+**Deployment Process**
 
 .. figure:: ../media/deploy-pipeline.png
     :alt: pipeline
@@ -27,58 +27,58 @@ Pulsar工具链概述
 .. _soc_introduction:
 
 ----------------------------
-虚拟 NPU 介绍
+Virtual NPU Introduction
 ----------------------------
 
-``AXera`` 目前提供 ``AX630A`` 、 ``AX620A`` 、``AX620U`` 三款可用芯片, 以下对这几款芯片的虚拟 NPU 硬件配置信息作简要描述.
+``AXera`` currently provides ``AX630A``, ``AX620A``, and ``AX620U`` available chips, and the following is a brief description of the virtual NPU hardware configuration information for these chips.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AX630A
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**虚拟 NPU (Neural-network Processing Unit)**
+**Virtual NPU (Neural-network Processing Unit)**
 
-+-------+----------+
-|  模式 |  支持列表|
-+=======+==========+
-|DEFAULT|0         |
-+-------+----------+
-|2_2    |221、222  |
-+-------+----------+
-|3_1    |311、312  |
-+-------+----------+
++-------+------------+
+| Mode  |Support List|
++=======+============+
+|DEFAULT|0           |
++-------+------------+
+|2_2    |221、222    |
++-------+------------+
+|3_1    |311、312    |
++-------+------------+
 
 .. note::
 
-    | ``NPU`` 硬件初始化只能选择一种模式
-    | ``DEFAULT`` 模式: 不划分 ``NPU`` 资源, 使用全部 ``NPU`` 资源
-    | ``2_2`` 模式: 对半划分 ``NPU`` 资源, ``221`` 和 ``222`` 各使用一半的 ``NPU`` 资源
-    | ``3_1`` 模式: 不对等的划分 NPU 资源, ``311`` 模式下的资源大概为 ``312`` 的3倍
-    | 通过虚拟 ``NPU`` 模式, 可以同时跑 ``PTQ`` 和 ``AI-ISP`` 模型
+    | Only one mode can be selected for ``NPU`` hardware initialization
+    | ``DEFAULT`` mode: no division of ``NPU`` resources, use all ``NPU`` resources
+    | ``2_2`` mode: divide ``NPU`` resources in half, use half of ``NPU`` resources for ``221`` and ``222`` each
+    | ``3_1`` mode: unequal division of NPU resources, ``311`` mode has roughly three times as many resources as ``312``
+    | Virtual ``NPU`` mode, you can run ``PTQ`` and ``AI-ISP`` models at the same time
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AX620A
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**虚拟 NPU**
+**Virtual NPU**
 
-+---------+----------+
-|   模式  | 支持列表 |
-+=========+==========+
-| DEFAULT | 0        |
-+---------+----------+
-| 1_1     | 111、112 |
-+---------+----------+
++---------+--------------+
+| Mode    | Support List |
++=========+==============+
+| DEFAULT | 0            |
++---------+--------------+
+| 1_1     | 111、112     |
++---------+--------------+
 
 .. note::
 
-    | ``NPU`` 硬件初始化只能选择一种模式
-    | ``DEFAULT`` 模式: 不划分 ``NPU`` 资源, 使用全部 ``NPU`` 资源
-    | ``1_1`` 模式: 对半划分 ``NPU`` 资源, ``111`` 和 ``112`` 各使用一半的 ``NPU`` 资源
-    | 通过虚拟 ``NPU`` 模式, 可以同时跑 ``PTQ`` 和 ``AI-ISP`` 模型
+    | Only one mode can be selected for ``NPU`` hardware initialization
+    | ``DEFAULT`` mode: no division of ``NPU`` resources, use all ``NPU`` resources
+    | ``1_1`` mode: divide ``NPU`` resources in half, ``111`` and ``112`` each use half of ``NPU`` resources
+    | With virtual ``NPU`` mode, you can run ``PTQ`` and ``AI-ISP`` models simultaneously
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AX620U
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``AX620U`` 与 ``AX620A`` 在上述功能上相同。
+The ``AX620U`` is the same as the ``AX620A`` in terms of the above functions.

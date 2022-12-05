@@ -1,32 +1,32 @@
-===================
-模型转换进阶指南
-===================
+======================================
+Model Conversion Advanced Guide
+======================================
 
------------------------
-Pulsar Build 模型编译
------------------------
+----------------------------------------------
+Pulsar Build model compilation
+----------------------------------------------
 
-本节介绍 ``pulsar build`` 命令完整使用方法. 
+This section describes the complete use of the ``pulsar build`` command. 
 
 ~~~~~~~~~~~~~~~~
-概述
+Overview
 ~~~~~~~~~~~~~~~~
 
-``pulsar build`` 用于模型优化、量化、编译等操作. 其运行示意图如下: 
+``pulsar build`` is used for model optimization, quantization, compilation, and other operations. A diagram of its operation is shown below: 
 
 .. mermaid::
 
   graph LR;
-  输入模型[输入模型 onnx] --> pb(pulsar build<br/>+命令行参数)
-  配置文件[配置文件 config.prototxt] --> pb
-  pb --> 输出模型[输出模型 joint]
-  pb --> 输出配置文件[配置文件 output_config.prototxt]
+  Input model [input model onnx] --> pb(pulsar build<br/>+command line arguments)
+  Configuration file [config.prototxt] --> pb
+  pb --> output model [output model joint]
+  pb --> output configuration file [configuration file output_config.prototxt]
 
-``pulsar build`` 利用输入模型(``model.onnx``)和配置文件(``config.prototxt``), 编译得到输出模型(``joint``)和输出配置文件(``output_config.prototxt``). 
+``pulsar build`` takes the input model (``model.onnx``) and the configuration file (``config.prototxt``) and compiles them to get the output model (``joint``) and the output configuration file (``output_config.prototxt``). 
 
-``pulsar build`` 的命令行参数将会覆盖配置文件中的某些对应部分, 并使 ``pulsar build`` 将覆盖过后得到的配置文件输出出来. 配置文件的详细介绍参见 :ref:`配置文件详细说明 <config_details>`. 
+The command line arguments of ``pulsar build`` will override some parts of the configuration file and cause ``pulsar build`` to output the overwritten configuration file. See :ref:`Configuration file details <config_details>` for a detailed description of the configuration file. 
 
-``pulsar build -h`` 可显示详细命令行参数: 
+``pulsar build -h`` shows detailed command line arguments: 
 
 .. code-block:: python
   :name: pulsar_build_help
@@ -69,102 +69,102 @@ Pulsar Build 模型编译
 
 .. hint::
 
-  利用配置文件可以实现复杂功能, 而命令行参数只是起一个辅助作用. 另外, 命令行参数会 override 配置文件中的某些对应配置.
+  Complex functions can be implemented using configuration files, and command-line arguments only play a supporting role. In addition, the command line parameters override some of the corresponding configuration in the configuration file.
 
-~~~~~~~~~~~~~~~~
-参数详解
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Detailed explanation of parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. data:: pulsar build 参数解释
+.. data:: pulsar build Parameter explanation
 
   --input
     
-    本次编译的输入模型路径, 对应 ``config.prototxt`` 中的 :ref:`input_path字段 <input_path>`
+    The input model path for this compilation, corresponding to the :ref:`input_path field <input_path>` in ``config.prototxt``
 
   --output
   
-    指定输出模型的文件名, 如 ``compiled.joint``, 对应 ``config.prototxt`` 中的 :ref:`output_path字段 <output_path>`
+    Specify the file name of the output model, e.g. ``compiled.joint``, corresponding to :ref:`output_path field <output_path>` in ``config.prototxt``
 
   --config
   
-    指定用于指导本次编译过程所用的基本配置文件. 如果为 ``pulsar build`` 命令指定了命令行参数, 则转换模型过程中优先使用命令行参数中指定的值
+    Specifies the basic configuration file used to guide the compilation process. If command-line arguments are specified for the ``pulsar build`` command, the values specified in the command-line arguments will be used in preference to those specified in the conversion model
 
   --output_config
   
-    将本次编译过程所使用的完整配置信息输出到文件
+    Outputs the complete configuration information used in this build to a file
 
   --target_hardware
   
-    指定编译输出模型所适用的硬件平台, 目前有 ``AX630`` 和 ``AX620`` 可选
+    Specify the hardware platform for compiling the output model, currently ``AX630`` and ``AX620`` are available
 
   --virtual_npu
   
-    指定推理时使用的虚拟 NPU , 请根据 ``--target_hardware`` 参数进行区别. 详情参见 :ref:`芯片介绍 <soc_introduction>` 中的虚拟NPU部分
+    Specify the virtual NPU to be used for inference, please differentiate according to the ``-target_hardware`` parameter. See the virtual NPU section in :ref:`chip_introduction <soc_introduction>` for details
 
   --output_dir
   
-    指定编译过程的工作目录. 默认为当前目录
+    Specifies the working directory for the compilation process. The default is the current directory
 
   --calibration_batch_size
   
-    转模型过程中, 内部参数校准时所使用数据的 ``batch_size``. 默认值为 ``32``
+    The ``batch_size`` of the data used for internal parameter calibration in the transcoding process. The default value is ``32``.
 
   --batch_size_option
     
-    设置 ``joint`` 格式模型所支持的 ``batch`` 类型:
+    Sets the ``batch`` type supported by the ``joint`` format model:
 
-      - ``BSO_AUTO``: 默认选项, 默认为静态 ``batch``
-      - ``BSO_STATIC``: 静态 ``batch``, 推理时固定 ``batch_size``, 性能最优
-      - ``BSO_DYNAMIC``: 动态 ``batch``, 推理时支持不超过最大值的任意 ``batch_size``, 使用最灵活
+      - ``BSO_AUTO``: default option, static by default ``batch``
+      - ``BSO_STATIC``: static ``batch``, fixed ``batch_size`` during inference, optimal performance
+      - ``BSO_DYNAMIC``: dynamic ``batch``, supports arbitrary ``batch_size`` up to the maximum value when reasoning, most flexible
 
   --compile_batch_size
   
-    设置 ``joint`` 格式模型所支持的 ``batch size``. 默认为 ``1``
+    Sets the ``batch size`` supported by the ``joint`` format model. The default is ``1``.
 
-      - 当指定了 ``--batch_size_option BSO_STATIC`` 时, ``batch_size`` 表示 ``joint`` 格式模型推理时能用的唯一 ``batch size``
-      - 当指定了 ``--batch_size_option BSO_DYNAMIC`` 时, ``batch_size`` 表示 ``joint`` 格式模型推理时所能使用的最大 ``batch size``
+      - When ``-batch_size_option BSO_STATIC`` is specified, ``batch_size`` indicates the unique ``batch size`` that the ``joint`` format model can use for reasoning.
+      - When ``-batch_size_option BSO_DYNAMIC`` is specified, ``batch_size`` indicates the maximum ``batch size`` that can be used for ``joint`` format model inference.
 
   --input_tensor_color
 
-    指定 **输入模型** 的 **输入数据** 的色彩空间, 可选项:
+    Specify the color space of **input data** for **input model**, optional:
 
-      - 默认选项: ``auto``, 根据模型输入 channel 数自动识别
-          * 3-channel 为 ``bgr``
-          * 1-channel 为 ``gray``
-      - 其他可选项: ``rgb``, ``bgr``, ``gray``, ``nv12``, ``nv21``
+      - Default option: ``auto``, automatic recognition based on the number of input channels to the model
+          * 3-channel is ``bgr``
+          * 1-channel is ``gray``
+      - Other options: ``rgb``, ``bgr``, ``gray``, ``nv12``, ``nv21``
 
   --output_tensor_color
 
-    指定 **输出模型** 的 **输入数据** 的色彩空间, 可选项:
+    Specify the color space of the **input data** for the **output model**, optional:
 
-      - 默认选项: ``auto``, 根据模型输入 channel 数自动识别
-          * 3-channel 为 ``bgr``
-          * 1-channel 为 ``gray``
-      - 其他可选项: ``rgb``, ``bgr``, ``gray``, ``nv12``, ``nv21``
+      - Default option: ``auto``, automatic recognition based on the number of input channels to the model
+          * 3-channel is ``bgr``
+          * 1-channel is ``gray``
+      - Other options: ``rgb``, ``bgr``, ``gray``, ``nv12``, ``nv21``
 
   --color_std
 
-    指定用于在 ``RGB`` 和 ``YUV`` 之间转换时所采用的转换标准, 可选项: ``legacy``, ``studio`` 和 ``full``, 默认值为 ``legacy``
+    Specify the conversion standard to be used when converting between ``RGB`` and ``YUV``, options: ``legacy``, ``studio`` and ``full``, default is ``legacy``
 
   --enable_progress_bar
 
-    编译时显示进度条. 默认不显示
+    Show progress bar at compile time. Not shown by default
   
   --output_tensor_layout
 
-    指定 **输出** 模型的 **输出** ``tensor`` 的 ``layout``, 可选:
+    Specify the ``layout`` of the **output** model of the ``tensor``, optional:
 
-      - ``native``: 默认选项, 历史遗留选项, 不推荐使用. 建议显式指定输出 ``layout``
+      - ``native``: default option, legacy option, not recommended. It is recommended to explicitly specify the output ``layout``
       - ``nchw``
       - ``nhwc``
     
     .. attention::
     
-      ``axera_neuwizard_v0.6.0.1`` 及以后版本的工具链才支持此参数. 
-      从 ``axera_neuwizard_v0.6.0.1`` 开始,  部分 ``AX620A`` 模型的输出 ``tensor`` 的默认 ``layout`` 
-      可能与 ``axera_neuwizard_v0.6.0.1`` 之前版本的工具链编译出来的模型不同. ``AX630A`` 模型的默认 ``layout`` 不受工具链版本的影响
+      This parameter is only supported by ``axera_neuwizard_v0.6.0.1`` and later toolchains. 
+      Starting from ``axera_neuwizard_v0.6.0.1``, the default ``layout`` of the output ``tensor`` of some ``AX620A`` models may be different from the default ``layout`` of the ``axera_neuwizard_v0.6.0.1``. 
+      may differ from the model compiled from the toolchain of previous versions of ``axera_neuwizard_v0.6.0.1``. The default ``layout`` of the ``AX630A`` model is not affected by the toolchain version
 
-代码示例
+Code examples
 
 .. code-block::
   :linenos:
@@ -173,36 +173,36 @@ Pulsar Build 模型编译
 
 .. tip::
 
-  当生成支持动态 ``batch`` 的 ``joint`` 模型时, 可以在 ``--compile_batch_size`` 后面指定多个常用的 ``batch_size``, 以提高使用不超过这些值的 ``batch size`` 进行推理时的性能. 
+  When generating ``joint`` models that support dynamic ``batch``, multiple common ``batch_size`` can be specified after ``-compile_batch_size`` to improve performance when reasoning with ``batch size`` up to these values. 
   
 .. attention::
 
-  指定多个 ``batch size`` 会增加 ``joint`` 模型文件的大小.
+  Specifying multiple ``batch sizes`` will increase the size of the ``joint`` model file.
 
 .. _pulsar_run:
 
--------------------------------
-Pulsar Run 模型仿真与对分
--------------------------------
+-------------------------------------------------------
+Pulsar Run model simulation and alignment
+-------------------------------------------------------
 
-本节介绍 ``pulsar run`` 命令完整使用方法.
+This section describes the complete use of the ``pulsar run`` command.
 
 ~~~~~~~~~~~~~~~~~
-概述
+Overview
 ~~~~~~~~~~~~~~~~~
 
-``pulsar run`` 用于在 ``x86`` 平台上对 ``joint`` 模型进行 **x86仿真** 和 **精度对分**.
+``pulsar run`` is used to perform **x86 simulation** and **precision pair splitting** of ``joint`` models on the ``x86`` platform.
 
 .. mermaid::
 
   graph LR;
-  目标模型[目标模型<br/>joint] --> pulsar_run(pulsar run<br/>+命令行参数)
-  参考模型[参考模型<br/>onnx] --> pulsar_run
-  图像文件[图像文件<br/>jpg / png] --> pulsar_run
-  pulsar_run --> 对分结果
-  pulsar_run --> gt[目标模型的仿真 inference 结果<br/>+<br/>上板输入数据]
+  Target Model[Target Model<br/>joint] --> pulsar_run(pulsar run<br/>+command line parameter)
+  Reference Model [Reference Model<br/>onnx] --> pulsar_run
+  Image files [Image files<br/>jpg / png] --> pulsar_run
+  pulsar_run --> pair splitting result
+  pulsar_run --> gt[Simulation of target model inference results<br/>+<br/>input data on board]
 
-``pulsar run -h`` 可显示详细命令行参数:
+``pulsar run -h`` shows detailed command line arguments:
 
 .. code-block:: python
   :name: input_conf_items
@@ -226,60 +226,60 @@ Pulsar Run 模型仿真与对分
     --config CONFIG
 
 
-.. data:: pulsar run 参数解释
+.. data:: pulsar run Parameter explanation
 
-  **必要参数**
+  **Required parameters**
   
     ``model.joint`` ``model.onnx``
 
   --input
 
-    可以指定多个输入数据, 并作为仿真 ``inference`` 的输入数据. 支持 ``jpg``、 ``png``、 ``bin`` 等格式, 需要保证其个数与模型输入层个数一致
+    Multiple input data can be specified and used as input data for the simulation ``inference``. Support ``jpg``, ``png``, ``bin``, etc., and make sure the number of them is the same as the number of model input layers
   
   --layer
 
-    | 不是必需项
-    | 当模型有多路输入时, 用于指定输入数据对应哪一层. 其顺序与 ``--input`` 呈对照关系
-    | 比如 ``--input file1.bin file2.bin --layer layerA layerB`` 就代表给 ``layerA`` 输入 ``file1.bin``、给 ``layerB`` 输入 ``file2.bin``, 需要保证 ``--layer`` 的长度与 ``--input`` 的长度一致
+    | Not required
+    | When the model has multiple inputs, it is used to specify which layer the input data should be on. The order is in contrast to ``-input``.
+    | For example, ``-input file1.bin file2.bin --layer layerA layerB`` means input ``file1.bin`` to ``layerA`` and input ``file2.bin`` to ``layerB``, making sure that the length of ``-layer`` is the same as the length of ``-input``.
   
   --use_onnx_ir
 
-    | 当使用 ``onnx`` 格式模型作为对分参考模型时, 此选项用以告诉 ``pulsar run`` 在内部用 ``NeuWizard IR`` 推理 ``onnx`` 模型. 默认不使用 ``NeuWizard IR``
-    | 此选项只有在指定了 ``--onnx`` 时才有意义, 该选项可忽略
+    | This option tells ``pulsar run`` to internally infer the ``onnx`` model with ``NeuWizard IR`` when using the ``onnx`` format model as a counterpoint reference model. By default, ``NeuWizard IR`` is not used.
+    | This option is only meaningful if `` --onnx`` is specified, it can be ignored
 
   --output_gt
 
-    指定用于存放目标模型的仿真 ``inference`` 结果和上板输入数据的目录. 默认不输出
+    Specifies the directory where the simulation ``inference`` results of the target model and the upper board input data are stored. No output by default
 
   --config
   
-    指定配置文件, 用于指导 ``pulsar run`` 在内部转换参考模型. 一般使用 ``pulsar build`` 的 ``--output_config`` 选项输出的配置文件
+    Specifies a configuration file to guide ``pulsar run`` in the internal conversion of the reference model. The configuration file is generally output using the ``-pulsar build`` ``--output_config`` option
 
-``pulsar run`` 代码示例
+``pulsar run`` code example
 
 .. code-block:: python
 
   pulsar run model.onnx compiled.joint --input test.jpg --config my_output_config.prototxt --output_gt gt
 
----------------------------
-Pulsar Info 查看模型信息
----------------------------
+------------------------------------------------------
+Pulsar Info View model information
+------------------------------------------------------
 
 .. Attention::
 
-  注意: 只有在版本号大于 ``0.6.1.2`` 的 ``docker`` 工具链中才能正常使用 ``pulsar info`` 功能.
+  Note: The ``pulsar info`` feature will only work with ``docker`` toolchains with version numbers greater than ``0.6.1.2``.
 
-  对于旧版本工具链转出的 ``.joint`` 模型, 无法通过 ``pulsar info`` 查看正确的信息, 需要利用新版本工具链重新转换. 原因在于旧版本 ``joint`` 中的 ``Performance.txt`` 文件不包含 ``onnx layer name`` 信息, 需要重新转换生成.
+  For ``.joint`` models transferred from an old toolchain, the correct information cannot be seen with ``pulsar info`` and needs to be reconverted with a newer toolchain. The reason is that the ``Performance.txt`` file in the old ``joint`` does not contain the ``onnx layer name`` information and needs to be reconverted.
 
-``pulsar info`` 用于查看 ``onnx`` 和 ``joint`` 模型的信息, 并支持将模型信息保存为 ``html``, ``grid``, ``jira`` 等格式.
+``pulsar info`` is used to view information about ``onnx`` and ``joint`` models, and supports saving model information to ``html``, ``grid``, ``jira`` formats.
 
-**用法命令**
+**Usage commands**
 
 .. code-block:: bash
 
   pulsar info model.onnx/model.joint
 
-**参数列表**
+**Parameter list**
 
 .. code-block:: bash
 
@@ -302,42 +302,42 @@ Pulsar Info 查看模型信息
     --part_info
     --tablefmt TABLEFMT   possible formats (html, grid, jira, etc.)
 
-**参数说明**
+**Parameter description**
 
-.. data:: pulsar info 参数解释
+.. data:: pulsar info Parameter explanation
 
   --output
 
-    指定模型信息保存目录, 默认不保存
+    Specify the directory where the model information is saved, not saved by default
 
   --output_json
 
-    以 Json 形式保存模型的完整信息, 默认不保存
+    Save the full model information as Json, not saved by default
 
   --layer_mapping
 
-    显示 Joint 模型的 layer_mapping 信息, 默认不显示
+    Show layer_mapping information of Joint model, not shown by default
     
-    可以用于查看 onnx layer 与转换后的 lava layer 间的对应关系
+    Can be used to see the correspondence between onnx layer and the converted lava layer
 
   --performance
 
-    显示 Joint 模型的 performance 信息, 默认不显示
+    Show performance information of Joint model, not shown by default
 
-  --part
+  --parts
 
-    显示 Joint 模型每个部分的全部信息, 默认不显示
+    Displays all information about each part of the Joint model, not shown by default
 
   --tablefmt
 
-    指定模型信息显示和保存格式, 可选项:
-      * simple: 默认选择项
+    Specify the format for displaying and saving model information, optional:
+      * simple: DEFAULT
       * grid
       * html
       * jira
-      * ... 任意 tabulate 库支持的 tablefmt 格式
+      * ... Any of the tablefmt formats supported by the tabulate library
 
-**示例: 查看模型基本信息**
+**Example: View basic model information**
 
 .. code-block:: bash
 
@@ -359,57 +359,57 @@ Pulsar Info 查看模型信息
   Static Batch: 1
   Toolchain Version: dfdce086b
 
-**示例: 查看 onnx layer 与编译后模型的 layer 之间的对应关系**
+**Example: See the correspondence between the onnx layer and the layer of the compiled model**
 
 .. figure:: ../media/layer_mapping.png
     :alt: layer_mapping
     :align: center
 
-其中 ``ORIGIN_NAmse`` 为原 ``onnx`` 的 ``layer name``, 而 ``LAVA_NAmse`` 则为编译后模型的 ``layer name``.
+where ``ORIGIN_NAmse`` is the ``layer name`` of the original ``onnx``, and ``LAVA_NAmse`` is the ``layer name`` of the compiled model.
 
 .. note::
 
-  在 ``pulsar info`` 中指定参数:
+  Specify the parameters in ``pulsar info``:
 
-  - ``--layer_mapping`` 参数可查看 ``onnx_layer_name`` 与转换后模型 ``layer_name`` 之间的对应关系
-  - ``--performance`` 参数可以查看各个 ``layer`` 的 ``performance`` 信息
+  - ``--layer_mapping`` parameter to see the correspondence between ``onnx_layer_name`` and the ``layer_name`` of the transformed model
+  - The ``--performance`` parameter allows you to see the ``performance`` information for each ``layer``.
 
-------------------------------------
-Pulsar Version 查看工具链版本
-------------------------------------
+-------------------------------------------------
+Pulsar Version View Toolchain Version
+-------------------------------------------------
 
-``pulsar version`` 用于获取工具的版本信息.
+``pulsar version`` is used to get the tool version information.
 
 .. hint::
 
-  如果需要向我们提供工具链的错误信息, 请将您所使用的工具链版本信息一并提交给我们.
+  If you need to provide us with toolchain error information, please submit the version of the toolchain you are using along with the information.
 
-代码示例
+Code examples
 
 .. code-block:: bash
 
   pulsar version
 
-示例结果
+Example result
 
 .. code-block:: bash
 
   0.5.34.2
   7ca3b9d5
 
-----------------
-配套工具
-----------------
+--------------------------
+Tools
+--------------------------
 
-``Pulsar`` 工具链还提供了其他常用的网络模型处理工具, 有助于使用者对网络模型进行格式转换等功能.
+The ``Pulsar`` toolchain also provides other common network model processing tools, which help users to format the network model and other functions.
 
 ~~~~~~~~~~~~~~~~~~
 Caffe2ONNX
 ~~~~~~~~~~~~~~~~~~
 
-在 ``Pulsar`` 的 ``Docker`` 镜像中预装了 ``dump_onnx.sh`` 工具, 提供将 ``Caffe`` 模型转换成 ``ONNX`` 模型的功能, 从而间接拓展了 ``pulsar build`` 对 ``Caffe`` 模型的支持. 具体使用方法如下所示: 
+The ``dump_onnx.sh`` tool is pre-installed in the ``Docker`` image of ``Pulsar``, providing the ability to convert ``Caffe`` models to ``ONNX`` models, thus indirectly extending ``pulsar build`` support for ``Caffe`` models. This is done as follows: 
 
-``dump_onnx.sh -h`` 可显示详细命令行参数: 
+``dump_onnx.sh -h`` to display detailed command line arguments: 
 
 .. code-block:: bash
   :name: dump_onnx_sh
@@ -419,21 +419,21 @@ Caffe2ONNX
   Usage: /root/caffe2onnx/dump_onnx.sh [prototxt] [caffemodel] [onnxfile]
 
 
-选项解释
+Option explanation
 
 - **[prototxt]**
 
-  输入的 ``caffe`` 模型的 ``*.prototxt`` 文件路径
+  The path to the ``*.prototxt`` file of the input ``caffe`` model
   
 - **[caffemodel]**
 
-  输入的 ``caffe`` 模型的 ``*.caffemodel`` 文件路径
+  The path to the ``*.caffemodel`` file for the input ``caffe`` model
 
 - **[onnxfile]**
 
-  输出的 ``*.onnx`` 模型文件路径
+  The output ``*.onnx`` model file path
 
-代码示例
+Code examples
 
 .. code-block:: shell
   :name: dump_onnx_demo
@@ -441,7 +441,7 @@ Caffe2ONNX
 
   root@xxx:/data$ dump_onnx.sh model/mobilenet.prototxt model/mobilenet.caffemodel model/mobilenet.onnx
 
-log 信息示例如下
+A sample log message is as follows
 
 .. code-block:: bash
   :name: dump_onnx_log
@@ -466,7 +466,7 @@ log 信息示例如下
   Input:  ['conv1']
   Output:  ['conv1']
   =================================================================
-  ####省略若干行 ############
+  ####Omitting several lines ############
   =================================================================
   Node:  prob
   OP Type:  Softmax
@@ -482,9 +482,9 @@ log 信息示例如下
 parse_nw_model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**功能**
+**Function**
 
-统计 ``joint`` 模型 ``cmm`` 使用情况
+Statistics ``joint`` model ``cmm`` usage
 
 .. code-block:: sh
   :linenos:
@@ -495,9 +495,9 @@ parse_nw_model
     -h, --help     show this help msesage and exit
     --model MODEL  dot_neu or joint file
 
-**使用方法示例**
+**Example of usage**
 
-以下命令只适用于工具链 ``docker`` 环境
+The following commands are only available for the toolchain ``docker`` environment
 
 .. code-block:: sh
   :linenos:
@@ -505,57 +505,57 @@ parse_nw_model
   python3 /root/python_modules/super_pulsar/super_pulsar/tools/parse_nw_model.py --model yolox_l.joint
   python3 /root/python_modules/super_pulsar/super_pulsar/tools/parse_nw_model.py --model part_0.neu
 
-**返回结果示例**
+**Example of returned results**
 
 .. code-block:: sh
   :linenos:
 
   {'McodeSize': 90816, 'WeightsNum': 1, 'WeightsSize': 568320, 'ringbuffer_size': 0, 'input_num': 1, 'input_size': 24576, 'output_num': 16, 'output_size': 576}
 
-**字段说明**
+**Field Description**
 
 .. list-table::
     :widths: 10 60
     :header-rows: 1
 
-    * - 字段
-      - 说明
-    * - 单位
+    * - field
+      - Description
+    * - unit
       - Byte
     * - McodeSize
-      - 二进制代码 Size
+      - Binary Code Size
     * - WeightsNum
-      - 表示权重个数
+      - Indicates the number of weights
     * - WeightsSize
-      - 权重 Size
+      - Weights Size
     * - ringbuffer_size
-      - 表示模型运行期间需要申请的 DDR Swap 空间
+      - Indicates the DDR Swap space to be requested during the model run
     * - input_num
-      - 表示模型的输入 Tensor 数
+      - indicates the number of input Tensors for the model
     * - input_size
-      - 输入 Tensor Size
+      - Input Tensor Size
     * - output_num
-      - 输出 Tensor 数
+      - Number of output Tensor
     * - output_size
-      - 输出 Tensor Size
+      - Output Tensor Size
 
 
 .. hint::
   
-  该脚本统计 ``joint`` 模型中所有 ``.neu`` 的 ``CMM`` 内存, 返回结果为所有 ``.neu`` 文件的解析结果之和.
+  This script counts the ``CMM`` memory of all ``.neu`` files in the ``joint`` model, and returns the sum of the parsed results of all ``.neu`` files.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``joint`` 模型初始化速度补丁工具
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``joint`` model initialization speed patch tool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**概述**
+**Overview**
 
 .. hint::
 
-  对于 ``neuwizard-0.5.29.9`` 及更早版本工具链转换的 ``joint`` 模型文件, 
-  可以使用 ``optimize_joint_init_time.py`` 工具离线刷新, 以减少 ``joint`` 模型加载时间, 推理结果和时间不变.
+  For ``neuwizard-0.5.29.9`` and earlier toolchain conversions of ``joint`` model files, 
+  can be refreshed offline using the ``optimize_joint_init_time.py`` tool to reduce the ``joint`` model load time, with no change in inference results or time.
 
-**使用方法**
+**How to use**
 
 .. code-block:: bash
 
@@ -563,74 +563,74 @@ parse_nw_model
   python3 optimize_joint_init_time.py --input old.joint --output new.joint
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-将 ``joint`` 模型中的 ``ONNX`` 子图转为 ``AXEngine`` 子图
+Convert ``ONNX`` subplots in ``joint`` models to ``AXEngine`` subplots
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**使用方法**
+**How to use**
 
 .. hint::
 
-  如下一条指令即可将名为 ``input.joint`` 的 ``joint`` 模型(以 ``ONNX`` 作为 ``CPU`` 后端实现)转为 ``joint`` 模型(以 ``AXEngine`` 作为 ``CPU`` 后端实现), 并且开启优化模式.
+  The ``joint`` model named ``input.joint`` (implemented with ``ONNX`` as the ``CPU`` backend) can be converted to a ``joint`` model (implemented with ``AXEngine`` as the ``CPU`` backend) with the following command, and optimization mode enabled.
 
 .. code-block:: python
 
   python3 /root/python_modules/super_pulsar/super_pulsar/tools/joint_onnx_to_axe.py --input input.joint --output output.joint --optimize_slim_model
 
-**参数释义**
+**Parameter Definition**
 
-.. data:: 参数释义
+.. data:: Parameter Definition
 
   --input
 
-    转换工具的输入 ``joint`` 模型路径
+    Input for the conversion tool ``joint`` model path
   
   --output
 
-    转换工具的输出 ``joint`` 模型路径
+    The output of the conversion tool ``joint`` model path
   
   --optimize_slim_model
 
-    开启优化模式. 当网络输出特征图较小时建议开启, 否则不建议
+    Turn on the optimization mode. It is recommended when the network output feature map is small, otherwise it is not recommended
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``wbt_tool`` 使用说明
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``wbt_tool`` Instructions for use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**背景**
+**Background**
 
-- 某些模型在不同使用场景下需要不同的网络权重, 例如 VD 模型的使用场景分为白天和夜晚, 两个网络结构一样, 但权重不一样, 是否可以设置成不同场景使用不同的权重, 即同一个模型保存多组权重信息 
-- 可以通过 ``Pulsar`` 工具链 ``Docker`` 中提供的 ``wbt_tool`` 脚本可以实现一个模型, 多套参数的需求
+- Some models need different network weights for different usage scenarios, for example, the usage scenario of VD model is divided into day and night, both networks have the same structure, but the weights are different, is it possible to set different weights for different scenarios, i.e., the same model keeps multiple sets of weight information 
+- The ``wbt_tool`` script provided in the ``Pulsar`` tool chain ``Docker`` can be used to realize the need for one model with multiple sets of parameters
 
-**工具概述**
+**Tools Overview**
 
-工具路径: ``/root/python_modules/super_pulsar/super_pulsar/tools/wbt_tool.py``, 注意需要给 ``wbt_tool.py`` 可执行权限
+Tool path: ``/root/python_modules/super_pulsar/super_pulsar/tools/wbt_tool.py``, note that you need to give ``wbt_tool.py`` executable permissions
 
 .. code-block:: bash
 
-  # 添加可执行权限
+  # Add executable permissions
   chmod a+x /root/python_modules/super_pulsar/super_pulsar/tools/wbt_tool.py
 
-.. data:: wbt_tool 功能参数
+.. data:: wbt_tool function parameters
 
   info
-    查看操作, 可以查看 ``joint`` 模型的 ``wbt`` 名称信息, 如果是 ``None``, 在 ``fuse`` 时需要手动指定
+    View the action to see the ``wbt`` name information for the ``joint`` model, and if it is ``None``, you need to specify it manually when ``fuse``.
 
   fuse
-    合并操作, 将多个网络结构一样, 网络权重不同的 ``joint`` 模型, 合成一个具有多份权重的 ``joint`` 模型
+    Merge operation to combine multiple ``joint`` models with the same network structure and different network weights into one ``joint`` model with multiple weights
 
   split
-    拆分操作, 将一个具有多份权重的 ``joint`` 模型, 拆分成多个网络结构一样, 网络权重不同的 ``joint`` 模型
+    split operation, which splits a ``joint`` model with multiple weights into multiple ``joint`` models with the same network structure and different network weights
 
-**使用限制**
+**Use restrictions**
 
 .. warning::
 
-  不支持含多份 ``wbt`` 的 ``joint`` 模型之间的合并, 
-  有需求时请先拆分成多个含单份 ``wbt`` 的 ``joint`` 模型, 再和其他模型合并.
+  Merging between ``joint'' models with multiple copies of ``wbt`` is not supported, 
+  Please split the ``joint`` model with single copy of ``wbt`` first, and then merge it with other models if needed.
 
-**示例1**
+**Example 1**
 
-查看模型 ``model.joint`` 的 ``wbt`` 信息:
+View the ``wbt`` information of model ``model.joint``:
 
 .. code-block:: python
 
@@ -642,11 +642,11 @@ parse_nw_model
 
 .. hint::
 
-  其中 ``<wbt_tool>`` 为 ``/root/python_modules/super_pulsar/super_pulsar/tools/wbt_tool.py``
+  where ``<wbt_tool>`` is ``/root/python_modules/super_pulsar/super_pulsar/tools/wbt_tool.py``
 
-**示例2**
+**Example 2**
 
-合并名为 ``model1.joint``, ``model2.joint`` 的两个模型至名为 ``model.joint`` 的模型, 使用 ``joint`` 模型中自带的 ``wbt_name``
+Merge two models named ``model1.joint``, ``model2.joint`` into a model named ``model.joint``, using the ``wbt_name`` that comes with the ``joint`` model
 
 .. code-block:: python
 
@@ -654,28 +654,27 @@ parse_nw_model
 
 .. attention::
 
-    如果 ``wbt_tool info`` 查看到 ``joint`` 模型的 ``wbt_name`` 为 ``None``, 需要手动指定 ``wbt_name``, 否则 ``fuse`` 时会报错.
+    If ``wbt_tool info`` sees ``wbt_name`` as ``None`` for a ``joint`` model, you need to specify ``wbt_name`` manually, otherwise it will report an error when ``fuse``.
 
-**示例3**
+**Example 3**
 
-拆分名为 ``model.joint`` 的模型至两个名为 ``model1.joint``, ``model2.joint`` 的模型
+Split the model named ``model.joint`` into two models named ``model1.joint``, ``model2.joint``.
 
 .. code-block:: python
 
   <wbt_tool> split --input model.joint --output model1.joint model2.joint
 
-**示例4**
+**Example 4**
 
-合并名为 ``model1.joint``, ``model2.joint`` 的两个模型至名为 ``model.joint`` 的模型, 且规定 ``model1.joint`` 模型中的 ``wbt_name`` 为 ``wbt1``, ``wbt2``, ``model2.joint`` 模型中的 ``wbt_name`` 为 ``wbt2``
-
+Merge two models named ``model1.joint``, ``model2.joint`` into a model named ``model.joint``, and specify ``wbt_name`` in the ``model1.joint`` model as ``wbt1``, ``wbt2``, ``wbt_name`` in the ``model2.joint`` model as 
 .. code-block:: python
 
   <wbt_tool> fuse --input model1.joint model2.joint --output model.joint --wbt_name wbt1 wbt2
 
-**示例5**
+**Example 5**
 
-拆分名为 ``model.joint`` 的模型, 该模型有四个 ``wbt`` 参数, ``index`` 为 ``0``, ``1``, ``2``, ``3``,
-只取 ``index`` 为 ``1, 3`` 的那两个 ``wbt``, 包装为 ``joint`` 模型, 并取名为 ``model_idx1.joint``, ``model_idx3.joint``
+Split the model named ``model.joint``, which has four ``wbt`` parameters with ``index``s of ``0``, ``1``, ``2``, ``3``,
+Take only the two ``wbt``s with ``index`` of ``1, 3``, package them as ``joint`` models, and name them ``model_idx1.joint``, ``model_idx3.joint``
 
 .. code-block:: python
 
@@ -683,43 +682,43 @@ parse_nw_model
 
 .. attention::
 
-  如果有使用上的问题, 请联系相关 ``FAE`` 同学进行支持.
+  If you have any questions about using it, please contact the relevant ``FAE`` student for support.
 
-------------------------------------------------
-不同场景下的 ``config prototxt`` 配置方法
-------------------------------------------------
+--------------------------------------------------------------------------------
+How to configure ``config prototxt`` in different scenarios
+--------------------------------------------------------------------------------
 
 .. hint::
 
-  ``Pulsar`` 通过合理配置 ``config`` 可以完成复杂的功能, 下面对一些常见场景下 ``config`` 配置进行说明.
-  注意: 本节所提供的代码示例均为代码片段, 需要用户手动添加到合适的位置.
+  ``Pulsar`` can perform complex functions by properly configuring ``config``, which is explained below for some common scenarios.
+  Note: The code examples provided in this section are code snippets that need to be manually added to the appropriate location by the user.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-搜索 PTQ 模型混合比特配置
+Search PTQ Model Mix Bit Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**前置工作**
+**Prior work**
 
-确保当前的 ``onnx`` 模型和配置文件 ``config_origin.prototxt`` 在 ``pulsar build`` 时可以成功转换为 ``joint`` 模型.
+Ensure that the current ``onnx`` model and the configuration file ``config_origin.prototxt`` can be successfully converted to a ``joint`` model during ``pulsar build``.
 
-**复制并修改配置文件**
+**Copy and modify the configuration file**
 
-``COPY`` 配置文件 ``config_origin.prototxt`` 并将其命名为 ``mixbit.prototxt``, 然后对 ``mixbit.prototxt`` 作如下修改: 
+``COPY`` the configuration file ``config_origin.prototxt`` and name it ``mixbit.prototxt``, then make the following changes to ``mixbit.prototxt``: 
 
-- ``output_type`` 指定为 ``OUTPUT_TYPE_SUPERNET``
-- 在 ``neuwizard_conf`` 内添加 ``task_conf`` 并按需添加混合比特搜索相关配置
+- ``output_type`` is specified as ``OUTPUT_TYPE_SUPERNET``
+- Add ``task_conf`` to ``neuwizard_conf`` and add mixbit search-related configuration as needed
 
-``config`` 示例如下:
+The ``config`` example is as follows:
 
 .. code-block:: python
   :linenos:
 
-  # 基本配置参数: 输入输出
+  # Basic configuration parameters: Input and output
   ...
   output_type: OUTPUT_TYPE_SUPERNET
   ...
 
-  # neuwizard 工具的配置参数
+  # Configuration parameters for the neuwizard tool
   neuwizard_conf {
       ...
       task_conf{
@@ -727,13 +726,13 @@ parse_nw_model
         supernet_options{
           strategy: SUPERNET_STRATEGY_MIXBIT # 不可修改
           mixbit_params{
-            target_w_bit: 8 # 设置平均 weight bit, 支持小数但数值必须在 w_bit_choices 的区间内
-            target_a_bit: 6 # 设置平均 feature bit, 支持小数但数值必须在 f_bit_choices 的区间内
-            w_bit_choices: 8 # weight 比特目前仅支持 [4, 8], 由于 prototxt 的限制必须分行写各个选项
-            a_bit_choices: 4 # feature 比特目前仅支持 [4, 8, 16], 由于 prototxt 的限制必须分行写各个选项
+            target_w_bit: 8 # Set the average weight bit, supports fractional numbers but must be in the range of w_bit_choices
+            target_a_bit: 6 # Set average feature bit, supports fractional values but must be in the range of f_bit_choices
+            w_bit_choices: 8 # weight bits are currently only supported in [4, 8], due to prototxt limitations each option must be written in separate lines
+            a_bit_choices: 4 # feature # feature currently only supports [4, 8, 16], due to prototxt limitations you must write each option in a separate line
             a_bit_choices: 8
-            # 目前支持 MIXBIT_METRIC_TYPE_HAWQv2, MIXBIT_METRIC_TYPE_MSE, MIXBIT_METRIC_TYPE_COS_SIM 三种, 
-            # 其中 hawqv2 速度较慢且可能需要开小 calibration batchsize, 推荐使用 MIXBIT_METRIC_TYPE_MSE
+            # MIXBIT_METRIC_TYPE_HAWQv2, MIXBIT_METRIC_TYPE_MSE, MIXBIT_METRIC_TYPE_COS_SIM are currently supported, 
+            # where hawqv2 is slower and may require a small calibration batchsize, MIXBIT_METRIC_TYPE_MSE is recommended
             metric_type: MIXBIT_METRIC_TYPE_MSE
           }
         }
@@ -743,40 +742,40 @@ parse_nw_model
 
 .. attention::
 
-  目前 **metric_type** 支持配置
+  Current **metric_type** support configuration
 
     - ``MIXBIT_METRIC_TYPE_HAWQv2``
     - ``MIXBIT_METRIC_TYPE_MSE``
     - ``MIXBIT_METRIC_TYPE_COS_SIM``
 
-  三种, 其中 ``HAWQv2`` 速度较慢且可能需要开小 ``calibration batchsize``, 推荐使用 ``MIXBIT_METRIC_TYPE_MSE``.
+  Among them, ``HAWQv2`` is slower and may require a smaller ``calibration batchsize``, ``MIXBIT_METRIC_TYPE_MSE`` is recommended.
 
-**进行 mixbit 搜索**
+**Conduct a mixbit search**
 
-在工具链 ``docker`` 中执行如下命令
+In the toolchain ``docker``, execute the following command
 
 .. code-block:: python
   :linenos:
 
-  pulsar build --config mixbit.prototxt --input your.onnx  # 如果模型路径已经配置在 config 中, 可省略 --input xxx
+  pulsar build --config mixbit.prototxt --input your.onnx # If the model path is already configured in config, you can omit --input xxx
 
-编译结束后会在当前目录产生 ``mixbit_operator_config.prototxt`` 文件和 ``onnx_op_bits.txt`` 文件.
+The ``mixbit_operator_config.prototxt`` file and the ``onnx_op_bits.txt`` file will be generated in the current directory after compilation.
 
-- ``mixbit_operator_config.prototxt`` 是可直接用于配置 ``prototxt`` 的混合比特搜索结果
-- ``onnx_op_bits.txt`` 中输出了 ``.onnx`` 模型中各权重层的输入 ``feature`` 和 ``weight bit``, 以及各 ``bit`` 的 ``sensitivity`` 计算结果 (数值越小表明对模型表现影响越小)
+- ``mixbit_operator_config.prototxt`` is a mixbit search result that can be used directly to configure ``prototxt``
+- ``onnx_op_bits.txt`` outputs the input ``feature`` and ``weight bit`` for each weight layer in the ``.onnx`` model, as well as the ``sensitivity`` calculated for each ``bit`` (smaller values indicate less impact on model performance)
 
 .. attention::
 
-  在搜 ``mixbit`` 时, ``mixbit.prototxt`` 中如果配置了 ``evaluation_conf`` 域, 编译过程中会报错, 但是不影响最终的输出结果, 因此可以忽略.
+  When searching ``mixbit``, if the ``evaluation_conf`` field is configured in ``mixbit.prototxt``, an error will be reported during the compilation process, but it will not affect the final output, so it can be ignored.
 
-将 ``mixbit`` 搜索结果添加至配置文件, 编译出基于 ``mixbit`` 配置的模型.
+Add the ``mixbit`` search results to the configuration file and compile the model based on the ``mixbit`` configuration.
 
-将 ``mixbit_operator_config.prototxt`` 中的所有内容直接复制到 ``config_origin.prototxt`` (不包含上述混合比特相关配置) 文件中的 ``neuwizard_conf->operator_conf`` 内, 示例如下: 
+Copy everything from ``mixbit_operator_config.prototxt`` directly to ``config_origin.prototxt`` (without the mixbit-related configuration above) in the ``neuwizard_conf->operator_conf`` file, as shown in the example below: 
 
 .. code-block:: python
   :linenos:
 
-  # neuwizard 工具的配置参数
+  # Configuration parameters for the neuwizard tool
   neuwizard_conf {
       ...
       operator_conf{
@@ -804,15 +803,15 @@ parse_nw_model
     ...
   }
 
-在工具链 ``docker`` 中执行如下命令:
+Execute the following command in the toolchain ``docker``:
 
 .. code-block:: python
   :linenos:
 
-  # 命令的参数需要根据实际需求配置, 这里仅用于说明问题
+  # The parameters of the command need to be configured according to the actual requirements, and are used here for illustrative purposes only
   pulsar build --config config_origin.prototxt --input your.onnx
 
-最后得到编译后的混合比特模型 ``your.joint``. 以下分别测试了 ``Resnet18`` 和 ``Mobilenetv2`` 在配置不同比特时模型的表现情况.
+The final compiled hybrid bit model is ``your.joint``. The following tests show how the models behave when configuring different bits for ``Resnet18`` and ``Mobilenetv2`` respectively.
 
 **Resnet18**
 
@@ -844,26 +843,26 @@ hawqv2 6w8f           68.96%     172.10   61min
 
 .. note::
 
-  上述繁琐的操作本质上是将搜索出的结果配置到 ``config_origin.prototxt`` 中, 基于搜索的配置编译出 ``joint`` 模型.
+  The above tedious operation is essentially configuring the search results into ``config_origin.prototxt`` and compiling the ``joint`` model based on the search configuration.
 
 .. _layer_wise_compare:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-逐层对分
+Layer-by-layer pairs of sub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. Attention::
 
-  注意: 只有在版本号大于 ``0.6.1.2`` 的 ``docker`` 工具链中才能正常使用逐层对分功能.
+  Note: The layer-by-layer pairing feature is only available in ``docker`` toolchains with version numbers greater than ``0.6.1.2``.
 
-需要在配置文件中加入以下内容
+You need to add the following to the configuration file
 
 .. code-block::
 
   dataset_conf_error_measurement {
         path: "../dataset/imagenet-1k-images.tar"
-        type: DATASET_TYPE_TAR         # 数据集类型为 tar package
-        size: 256                      # 量化校准过程中实际使用的图片张数
+        type: DATASET_TYPE_TAR # The dataset type is tar package
+        size: 256 # The actual number of images used in the calibration quantification process
    }
 
    evaluation_conf {
@@ -874,18 +873,18 @@ hawqv2 6w8f           68.96%     172.10   61min
         score_compare_per_layer: true
    }
 
-完整示例如下(以 ``resnet18`` config 为例)
+The full example is as follows (using ``resnet18`` config as an example)
 
 .. code-block::
 
-    # 基本配置参数：输入输出
+    # Basic configuration parameters: input and output
     input_type: INPUT_TYPE_ONNX
     output_type: OUTPUT_TYPE_JOINT
 
-    # 硬件平台选择
+    # Hardware platform selection
     target_hardware: TARGET_HARDWARE_AX620
 
-    # CPU 后端选择，默认采用 AXE
+    # CPU backend selection, default is AXE
     cpu_backend_settings {
         onnx_setting {
             mode: DISABLED
@@ -898,17 +897,17 @@ hawqv2 6w8f           68.96%     172.10   61min
         }
     }
 
-    # 模型输入数据类型设置
+    # Model input data type settings
     src_input_tensors {
         color_space: TENSOR_COLOR_SPACE_RGB
     }
 
     dst_input_tensors {
         color_space: TENSOR_COLOR_SPACE_RGB
-        # color_space: TENSOR_COLOR_SPACE_NV12	# 若输入数据是 NV12, 则使用该配置
+        # color_space: TENSOR_COLOR_SPACE_NV12 # If the input data is NV12, then this configuration is used
     }
 
-    # neuwizard 工具的配置参数
+    # Configuration parameters for the neuwizard tool
     neuwizard_conf {
         operator_conf {
             input_conf_items {
@@ -922,24 +921,24 @@ hawqv2 6w8f           68.96%     172.10   61min
                     }
                     input_modifications {
                         input_normalization {
-                            mean: [0.485,0.456,0.406]  ## 均值
-                            std: [0.229,0.224,0.255]   ## 方差
+                            mean: [0.485,0.456,0.406]  ## mean
+                            std: [0.229,0.224,0.255]   ## std
                         }
                     }
                 }
             }
         }
         dataset_conf_calibration {
-            path: "../dataset/imagenet-1k-images.tar" # 设置 PTQ 校准数据集路径
-            type: DATASET_TYPE_TAR         # 数据集类型：tar 包
-            size: 256                      # 量化校准过程中实际使用的图片张数
+            path: "... /dataset/imagenet-1k-images.tar" # Set the path to the PTQ calibration dataset
+            type: DATASET_TYPE_TAR # dataset type: tarball
+            size: 256 # Quantify the actual number of images used in the calibration process
             batch_size: 1
-        }
+            }
 
         dataset_conf_error_measurement {
-            path: "../dataset/imagenet-1k-images.tar"
-            type: DATASET_TYPE_TAR         # 数据集类型: tar 包
-            size: 4                        # 逐层对分过程中实际使用的图片张数
+            path: "... /dataset/imagenet-1k-images.tar"
+            type: DATASET_TYPE_TAR # Dataset type: tarball
+            size: 4 # The actual number of images used in the layer-by-layer pairing process
         }
 
         evaluation_conf {
@@ -951,19 +950,19 @@ hawqv2 6w8f           68.96%     172.10   61min
         }  
     }
 
-    # 输出 layout 设置, 建议使用 NHWC, 速度更快
+    # Output layout settings, NHWC is recommended for faster speed
     dst_output_tensors {
         tensor_layout:NHWC
     }
 
-    # pulsar compiler 的配置参数
+    # Configuration parameters for pulsar compiler
     pulsar_conf {
-        ax620_virtual_npu: AX620_VIRTUAL_NPU_MODE_111	# 业务场景需要使用 ISP, 则必须使用 vNPU 111 配置, 1.8Tops 算力给用户的算法模型
+        ax620_virtual_npu: AX620_VIRTUAL_NPU_MODE_111	# require to use ISP, must use the vNPU 111 configuration, 1.8Tops of arithmetic power to the user's algorithm model
         batch_size: 1
         debug : false
     }
 
-在 ``pulsar build`` 过程中, 会打印出模型每一层的精度损失情况, 如下图所示.
+In the ``pulsar build`` process, the accuracy loss of each layer of the model is printed out, as shown in the figure below.
 
 .. figure:: ../media/resnet18_each_layer_comparation.png
     :alt: comparation
@@ -971,39 +970,39 @@ hawqv2 6w8f           68.96%     172.10   61min
 
 .. warning::
 
-  注意, 添加此配置后会大幅度增加模型的编译时间.
+  Note that adding this configuration will significantly increase the compilation time of the model.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-多路输入, 不同路配置不同 ``CSC``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multiple inputs, different configurations for different channels ``CSC``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``CSC`` 为色彩空间转换 (Color Space Convert) 的缩写. 以下配置表示输入模型(即 ``ONNX`` 模型)的 ``data_0`` 输入色彩空间为 ``BGR``, 
-而编译后的输出模型(即 ``JOINT`` 模型)的 ``data_0`` 的输入色彩空间将被修改为 ``NV12``, 详细信息可以参考 :ref:`tensor_conf配置 <tensor_conf>`.
+``CSC`` stands for Color Space Convert. The following configuration means that the ``data_0`` input color space of the input model (i.e., the ``ONNX`` model) is ``BGR``, 
+The input color space of ``data_0`` of the compiled output model (i.e., the ``JOINT`` model) will be modified to ``NV12``, as described in :ref:`tensor_conf configuration <tensor_conf>`.
 
-简而言之, 就是编译前的模型, 输入 ``tensor`` 是什么属性, 而编译后的模型, 输入 ``tensor`` 又是什么属性.
+In short, it is what the input ``tensor`` is for the pre-compiled model, and what the input ``tensor`` is for the post-compiled model.
 
-**代码示例1**
+**Code example 1**
 
 .. code-block:: bash
   :linenos:
 
   src_input_tensors {
     tensor_name: "data_0"
-    color_space: TENSOR_COLOR_SPACE_BGR  # 用于描述或说明模型的 `data_0` 路输入的色彩空间
+    color_space: TENSOR_COLOR_SPACE_BGR  # The color space of the `data_0` road input used to describe or illustrate the model
   }
   dst_input_tensors {
     tensor_name: "data_0"
-    color_space: TENSOR_COLOR_SPACE_NV12  # 用于修改输出模型的 `data_0` 路输入的色彩空间
+    color_space: TENSOR_COLOR_SPACE_NV12  # Color space of the `data_0` road input used to modify the output model
   }
 
-其中 ``tensor_name`` 用于选择某一路 ``tensor`` . ``color_space`` 用于配置当前 ``tensor`` 的色彩空间.
+where ``tensor_name`` is used to select a certain ``tensor``. ``color_space`` is used to configure the color space of the current ``tensor``.
 
 .. hint::
 
-  ``color_space`` 的默认值为 ``TENSOR_COLOR_SPACE_AUTO`` , 会根据模型输入 channel 数自动识别, 3-channel 为 ``BGR``;
-  1-channel 为 ``GRAY`` . 所以如果色彩空间为 ``BGR`` 时, 可以不配置 ``src_input_tensors`` , 但是有时候为了更好地描述信息, ``src_input_tensors`` 和 ``dst_input_tensors`` 通常会成对出现.
+  The default value of ``color_space`` is ``TENSOR_COLOR_SPACE_AUTO`` , which is automatically recognized based on the number of channels entered by the model, 3-channel for ``BGR``;
+  1-channel is ``GRAY`` . So if the color space is ``BGR``, ``src_input_tensors`` can be left out, but sometimes ``src_input_tensors`` and ``dst_input_tensors`` usually come in pairs to better describe the information.
 
-**代码示例2**
+**Code Example 2**
 
 .. code-block:: python
   :linenos:
@@ -1015,16 +1014,16 @@ hawqv2 6w8f           68.96%     172.10   61min
     color_space: TENSOR_COLOR_SPACE_AUTO
   }
 
-根据输入 ``tensor`` 的 ``channel`` 数自动选择, 此配置项可省略, 但不推荐.
+The number of ``channels`` is automatically selected based on the input ``tensor``, which can be omitted but is not recommended.
 
-**代码示例3**
+**Code Example 3**
 
 .. code-block:: python
   :linenos:
 
   src_input_tensors {
   tensor_name: "data_0"
-    color_space: TENSOR_COLOR_SPACE_RGB  # 原始输入模型的 `data_0` 输入的色彩空间是 RGB
+    color_space: TENSOR_COLOR_SPACE_RGB # The color space of the original input model's `data_0` input is RGB
   }
   dst_input_tensors {
     tensor_name: "data_0"
@@ -1032,15 +1031,15 @@ hawqv2 6w8f           68.96%     172.10   61min
     color_standard: CSS_ITU_BT601_STUDIO_SWING
   }
 
-以上配置表示输入模型(即 ``ONNX`` 模型)的 ``data_0`` 输入色彩空间为 ``RGB``,  而编译后的输出模型(即 ``JOINT`` 模型)的 ``data_0`` 的输入色彩空间将被修改为 ``NV12``, 同时将 ``color_standard`` 配置为 ``CSS_ITU_BT601_STUDIO_SWING`` .
+The above configuration means that the input color space of ``data_0`` of the input model (i.e. ``ONNX`` model) is ``RGB``, while the input color space of ``data_0`` of the compiled output model (i.e. ``JOINT`` model) will be modified to ``NV12``, and the ``color_standard`` will be configured as ``CSS_ITU_BT601_STUDIO_SWING`` .
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``cpu_lstm`` 配置
+``cpu_lstm`` configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. hint::
 
-  如果模型中存在 ``lstm`` 结构, 可以参考如下配置文件进行配置, 保证模型在此结构上不会出现异常.
+  If there is an ``lstm`` structure in the model, you can configure it by referring to the following configuration file to ensure that the model will not have exceptions on this structure.
 
 .. code-block:: bash
   :linenos:
@@ -1052,7 +1051,7 @@ hawqv2 6w8f           68.96%     172.10   61min
     }
   }
 
-一个完整的配置文件参考(包含 ``cpu_lstm``, ``rgb``, ``nv12``)示例
+A complete configuration file reference (containing ``cpu_lstm``, ``rgb``, ``nv12``) example
 
 .. code-block:: bash
   :linenos:
@@ -1070,13 +1069,13 @@ hawqv2 6w8f           68.96%     172.10   61min
     color_standard: CSS_ITU_BT601_STUDIO_SWING
   }
 
-  target_hardware: TARGET_HARDWARE_AX630  # 可以使用命令行参数覆盖此配置
+  target_hardware: TARGET_HARDWARE_AX630 # You can override this configuration with command line arguments
   neuwizard_conf {
     operator_conf {
       input_conf_items {
         attributes {
           input_modifications {
-            input_normalization {  # 输入数据归一化, mean/std 的顺序与输入 tensor 的色彩空间有关
+            input_normalization { # input data normalization, the order of mean/std is related to the color space of the input tensor
                 mean: 0
                 mean: 0
                 mean: 0
@@ -1105,7 +1104,7 @@ hawqv2 6w8f           68.96%     172.10   61min
     batch_size: 1
   }
 
-只有 ``cpu_lstm`` 的情况下, 完整配置文件参考如下:
+In the case of ``cpu_lstm`` only, the full configuration file is referenced below:
 
 .. code-block:: bash
   :linenos:
@@ -1124,8 +1123,8 @@ hawqv2 6w8f           68.96%     172.10   61min
       input_conf_items {
         attributes {
           input_modifications {
-            affine_preprocess {  # 对数据做 affine 操作, 即 `* k + b` , 用于改变编译后模型的输入数据类型
-              slope: 1           # 即将输入数据类型由浮点数 [0, 1) 类型修改为 uint8
+            affine_preprocess {  # Affine the data, i.e. `* k + b`, to change the input data type of the compiled model
+              slope: 1           # Change the input data type from floating point [0, 1) to uint8
               slope_divisor: 255
               bias: 0
             }
@@ -1152,15 +1151,15 @@ hawqv2 6w8f           68.96%     172.10   61min
 
 .. hint::
 
-  在 ``attributes`` 可以直接修改数据类型, 属于 **强制类型转换** , 而 ``input_modifications`` 中的 ``affine`` 将浮点类型的数据转换为 ``UINT8`` 时, 会有 ``* k + b`` 操作.
+  In ``attributes`` you can modify the data type directly, which is a **forced type conversion**, while ``affine`` in ``input_modifications`` converts floating-point data to ``UINT8`` with a ``* k + b`` operation.
   
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-动态 ``Q`` 值
+Dynamic ``Q`` values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-动态 ``Q`` 值会被自动计算, 可以通过 ``run_joint`` 打印的log信息查看具体值.
+Dynamic ``Q`` values are calculated automatically, and can be seen in the log message printed by ``run_joint``.
 
-**代码示例**
+**Code example**
 
 .. code-block:: bash
   :linenos:
@@ -1170,12 +1169,12 @@ hawqv2 6w8f           68.96%     172.10   61min
   }
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-静态 ``Q`` 值
+Static ``Q`` values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-与动态 ``Q`` 值的区别在于显式配置 ``quantization_value``.
+The difference between dynamic ``Q`` values is the explicit configuration of ``quantization_value``.
 
-**代码示例**
+**Code example**
 
 .. code-block:: bash
   :linenos:
@@ -1185,16 +1184,16 @@ hawqv2 6w8f           68.96%     172.10   61min
     quantization_value: 256
   }
 
-关于 ``Q`` 值的详细描述参见 :ref:`Q值介绍 <QValue>`
+For a detailed description of the ``Q`` value see :ref:`QValue Introduction <QValue>`
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``FLOAT`` 输入配置
+``FLOAT`` input configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-如果期望 ``onnx`` 编译后的 ``joint`` 模型, 能在上板时以 ``FLOAT32`` 类型作为输入, 
-可以按照以下示例对 ``prototxt`` 配置.
+If you expect the compiled ``joint`` model of ``onnx`` to have the ``FLOAT32`` type as input when you go to the board, 
+you can configure ``prototxt`` according to the following example.
 
-**代码示例**
+**Code example**
 
 .. code-block:: bash
   :linenos:
@@ -1202,19 +1201,19 @@ hawqv2 6w8f           68.96%     172.10   61min
   operator_conf {
     input_conf_items {
       attributes {
-        type: FLOAT32   # 这里约定了编译后的模型以 float32 作为输入类型
+        type: FLOAT32   # Here it is agreed that the compiled model will have float32 as the input type
       }
     }
   }
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-多路输入, 不同路设置不同的数据类型
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multiple inputs, different data types for different channels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-如果期望双路 ``onnx`` 编译后的 ``joint`` 模型, 能在上板时一路以 ``UINT8`` 为输入, 另一路以 ``FLOAT32`` 为输入, 
-可以参考以下示例 ``prototxt`` 配置.
+If you expect a two-way ``onnx`` compiled ``joint`` model to be loaded with ``UINT8`` as input and ``FLOAT32`` as input, 
+See the following example ``prototxt`` configuration.
 
-**代码示例**
+**Code example**
 
 .. code-block:: bash
   :linenos:
@@ -1241,14 +1240,14 @@ hawqv2 6w8f           68.96%     172.10   61min
 .. _Q16bit:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-16bit 量化
+16bit quantization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. hint::
 
-  在量化精度不足时, 可以考虑 ``16bit`` 量化.
+  Consider ``16bit`` quantization when quantization accuracy is not sufficient.
 
-代码示例
+Code example
 
 .. code-block:: bash
   :linenos:
@@ -1267,11 +1266,11 @@ hawqv2 6w8f           68.96%     172.10   61min
 Joint Layout配置
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-在工具链 ``axera/neuwizard:0.6.0.1`` 之前, 工具链编译后模型的输出 ``Layout`` 根据情况而异, 无法配置. 
+Before toolchain ``axera/neuwizard:0.6.0.1``, the output ``Layout`` of the toolchain compiled model varies depending on the situation and cannot be configured. 
 
-在 ``0.6.0.1`` 版本之后, 如果不在 ``pulsar build`` 或者配置选项中配置编译后模型输出 ``Layout``, 则工具链默认设置编译后模型输出 ``Layout`` 为 ``NCHW``. 
+After ``0.6.0.1``, if the post-compile model output ``Layout`` is not configured in ``pulsar build`` or in the configuration options, the toolchain defaults to ``NCHW`` for the post-compile model output ``Layout``. 
 
-通过配置文件修改 ``joint`` 输出 ``Layout`` 参考如下:
+Modify the ``joint`` output ``Layout`` via the configuration file as follows:
 
 .. code-block:: bash
   :linenos:
@@ -1280,19 +1279,19 @@ Joint Layout配置
     tensor_layout: NHWC
   }
 
-显式配置方式为: 在 ``pulsar build`` 编译指令中添加 ``--output_tensor_layout nhwc`` 选项. 
+Explicit configuration: add the ``--output_tensor_layout nhwc`` option to the ``pulsar build`` compiler directive. 
 
 .. hint::
 
-  由于硬件内部是默认 ``NHWC`` 的 ``layout`` 排布, 因此更推荐使用 ``NHWC`` 以获得更高的 ``FPS``.
+  Since the default ``layout`` layout of ``NHWC`` is internal to the hardware, it is recommended to use ``NHWC`` to get higher ``FPS``.
 
 .. _multi_calibrations_input:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-多路 ``Calibration`` 数据集
+Multiplex ``Calibration`` dataset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-如下配置描述了双路输入模型中每一路采用不同 ``calibration`` 数据集的情况, 其中 ``input0.tar`` 与 ``input1.tar`` 分别是与训练数据集相关的数据集合.
+The following configuration describes a two-way input model with different ``calibration`` datasets for each way, where ``input0.tar`` and ``input1.tar`` are the data sets associated with the training dataset, respectively.
 
 .. code-block:: bash
   :linenos:
@@ -1300,53 +1299,53 @@ Joint Layout配置
   dataset_conf_calibration {
     dataset_conf_items {
       selector {
-        op_name: "0"      # 一路输入的 tensor name.
+        op_name: "0"      # The tensor name of one input.
       }
-      path: "input0.tar"  # 使用的校准数据集 `input0.tar`
+      path: "input0.tar"  # Calibration dataset used `input0.tar`
     }
     dataset_conf_items {
       selector {
-        op_name: "1"      # 另一路输入的 tensor name.
+        op_name: "1"      # The tensor name of the other input.
       }
-      path: "input1.tar"  # 使用的校准数据集 `input1.tar`
+      path: "input1.tar"  # Calibration dataset used `input1.tar`
     }
     type: DATASET_TYPE_TAR
     size: 256
   }
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``Calibration`` 数据集为非图像类型
+``Calibration`` dataset as non-image type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-对于检测和分类模型, 训练数据一般为 ``UINT8`` 图像组成的数据集, 
-而对于诸如 ``ST-GCN`` 等行为识别模型, 其训练数据一般为 ``float`` 类型的坐标点构成的集合. 
-目前 ``Pulsar`` 工具链支持配置非图像集的 ``calibration``, 接下来对具体配置方法进行说明.
+For detection and classification models, the training data is generally a dataset of ``UINT8`` images, 
+For behavioral recognition models such as ``ST-GCN``, the training data is generally a set of ``float`` type coordinate points. 
+Currently, the ``Pulsar`` toolchain supports the configuration of ``calibration`` for non-image sets, which is described in the next section.
 
-.. attention::
+... attention::
 
-  - ``calibration`` 数据集应与训练数据集和测试数据集具有相同的分布
-  - ``calibration`` 为非图像的情况下需要给出由 ``.bin`` 组成的 ``tar`` 文件
-  - ``.bin`` 必须保证与 ``onnx`` 模型输入的 ``shape`` 和 ``dtype`` 一致
+  - The ``calibration`` dataset should have the same distribution as the training and test datasets
+  - ``calibration`` should be given as a ``tar`` file consisting of ``.bin`` if it is not an image
+  - ``.bin`` must be consistent with the ``shape`` and ``dtype`` of the ``onnx`` model input
 
-以 ``ST-GCN`` 为例, 说明如何配置非图像集的 ``calibration``.
+Take ``ST-GCN`` as an example of how to configure ``calibration`` for a non-image set.
 
-**ST-GCN双路输入示例**
+**ST-GCN Dual Input Example**
 
 .. figure:: ../media/multi_input_calibrations_model.png
     :alt: multi_input_model
     :align: center
 
-从上图可知: 
+As you can see from the figure above: 
 
-  - 双路 ``STGCN`` 模型的输入 ``tensor_name`` 分别为 ``0`` 和 ``1``, ``dtype`` 为 ``float32``
-  - 按照 :ref:`多路 calibration 的配置方法 <multi_calibrations_input>`, 可以很容易地将 ``config`` 配置正确
-  - ``tar`` 文件的具体制作方式, 将在后文中说明
+  - The input ``tensor_name`` of the two-way ``STGCN`` model is ``0`` and ``1`` respectively, and the ``dtype`` is ``float32``.
+  - Following the :ref: ``multi_calibrations_input`` configuration method, it is easy to configure ``config`` correctly
+  - The details of how to create the ``tar`` file will be explained later
 
-**双路输入但不需要配对**
+**Dual input without pairing**
 
-在模型双路输入不需要配对的情况下, 说明如何制作 ``calibration`` 的 ``.tar`` 文件.
+The ``.tar`` file for ``calibration`` is explained in the case of a model with two inputs that does not require pairing.
 
-**参考代码**
+**Reference Code**
 
 .. code-block:: python
   :linenos:
@@ -1357,22 +1356,22 @@ Joint Layout配置
 
 
   def makeTar(outputTarName, sourceDir):
-      # 打 tar 包
+      # Create a tarball
       with tarfile.open( outputTarName, "w" ) as tar:
           tar.add(sourceDir, arcname=os.path.basename(sourceDir))
 
-  input_nums = 2   # 双路输入, 如 stgcn
-  case_nums = 100  # 每个 tar 中包含 100 个 bin 文件
+  input_nums = 2 # two-way input, e.g. stgcn
+  case_nums = 100 # each tar contains 100 bin files
 
-  # 通过 numpy 创建 bin 文件
+  # Create bin files with numpy
   for input_num in range(input_nums):
       for num in range(case_nums):
-          if not os.path.exists(f"stgcn_tar_{input_num}"):
-              os.makedirs(f"stgcn_tar_{input_num}")
+          if not os.path.exists(f "stgcn_tar_{input_num}"):
+              os.makedirs(f "stgcn_tar_{input_num}")
           if input_num == 0:
-              # 输入 shape 和 dtype 必须和原始模型的输入 tensor 保持一致
-              # 这里的 input 是一个随机值, 仅仅作为一个 example
-              # 在实际应用中应读取具体的训练或测试数据集
+              # input shape and dtype must be consistent with the input tensor of the original model
+              # The input here is a random value, just as an example
+              # The specific training or test dataset should be read in the real application
               input = np.random.rand(1, 3, 30, 14).astype(np.float32)
           elif input_num == 1:
               input = np.random.rand(1, 2, 29, 14).astype(np.float32)
@@ -1383,36 +1382,36 @@ Joint Layout配置
       # create tar file.
       makeTar(f"stgcn_tar_{input_num}.tar", f"./stgcn_tar_{input_num}" )
 
-将上述脚本生成的 ``tar`` 文件的路径配置到 ``config`` 中的 ``dataset_conf_calibration.dataset_conf_items.path`` 处即可,
+Configure the path of the ``tar`` file generated by the above script to ``dataset_conf_calibration.dataset_conf_items.path`` in ``config``,
 
-**双路输入需要配对**
+**dual inputs need to be paired**
 
-- 如果双路输入需要配对, 只需要确保两个 ``tar`` 中的 ``.bin`` 文件名字对应相同即可
-- 如 ``stgcn_tar_0.tar`` 中的 ``cnt_input_0_0.bin``, ``cnt_input_0_1.bin``, ..., ``cnt_input_0_n.bin`` , 而 ``stgcn_tar_1.tar`` 中的文件命名为 ``cnt_input_1_0.bin``, ``cnt_input_1_1.bin``, ..., ``cnt_input_1_n.bin``, 两个 ``tar`` 中的文件名字对应不同, 因此无法配对输入
-- 简而言之, 当需要输入之间配对时, 配对输入的文件名字要相同
+- If dual inputs need to be paired, just make sure that the ``.bin`` files in both ``tar`` have the same name
+- For example, ``cnt_input_0_0.bin``, ``cnt_input_0_1.bin``, ... in ``stgcn_tar_0.tar``. , ``cnt_input_0_n.bin`` , and the files in ``stgcn_tar_1.tar`` are named ``cnt_input_1_0.bin``, ``cnt_input_1_1.bin``, ... , ``cnt_input_1_n.bin``, the names of the files in the two ``tar`` are different, so it is not possible to pair the inputs
+- In short, when you need to pair inputs with each other, the file names of the paired inputs should be the same
 
 .. hint::
 
-  注意: 
-    - ``tofile`` 时不支持设置 ``dtype``
-    - 如果想要读入 ``bin`` 文件, 还原原始数据, 须指明 ``dtype``, 且与 ``tofile`` 时的 ``dtype`` 保持一致, 否则会报错或出现元素个数不同的情况
-    - 例如, ``tofile`` 时 ``dtype`` 为 ``float64``, 元素个数为 ``1024``, 而读取时候为 ``float32``, 那么元素个数将变更为 ``2048``, 不符合预期
+  Note: 
+    - Setting ``dtype`` is not supported for ``tofile``.
+    - If you want to read in a ``bin`` file and restore the original data, you must specify ``dtype``, and keep the same ``dtype`` as in ``tofile``, otherwise you will get an error or a different number of elements.
+    - For example, if ``dtype`` is ``float64`` at the time of ``tofile``, and the number of elements is ``1024``, and ``float32`` at the time of reading, then the number of elements will change to ``2048``, which is not as expected.
   
-  代码示例如下:
+  Code example is as follows:
     .. code-block:: python
       :linenos:
 
       input_0 = numpy.fromfile("./cnt_input_0_0.bin", dtype=np.float32)
       input_0_reshape = input_0.reshape(1, 3, 30, 14)
 
-  当执行 ``fromfile`` 操作时的 ``dtype`` 与 ``tofile`` 不同时, ``reshape`` 操作会报错
+  When the ``dtype`` of the ``fromfile`` operation is different from the ``tofile``, the ``reshape`` operation will report an error.
 
-当 ``calibration`` 为 ``float`` 集时, 需要在 ``config`` 中指明输入 ``tensor`` 的 ``dtype``, 默认是 ``UINT8``. 
-如果没有指明, 可能会出现 ``ZeroDivisionError``.
+When ``calibration`` is a ``float`` set, you need to specify the ``dtype`` of the input ``tensor`` in the ``config``, which is ``UINT8`` by default. 
+If this is not specified, a ``ZeroDivisionError`` may occur.
 
-.. attention::
+... attention::
 
-  对于 ``float`` 输入, 注意还需要配置以下内容:
+  For ``float`` inputs, note that the following is also required:
 
     .. code-block:: python
       :linenos:
@@ -1428,30 +1427,30 @@ Joint Layout配置
 .. _dynamic_batch_size:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-配置动态 ``batch``
+Configuration dynamics ``batch``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-设置动态 ``batch`` 后, 在推理时支持 **不超过最大值** 的任意 ``batch_size``, 使用较灵活, 配置参考如下:
+After setting dynamic ``batch``, it supports any ``batch_size`` of **not exceeding the maximum value** during inference, which is more flexible to use:
 
 .. code-block:: bash
   :linenos:
 
   pulsar_conf {
-    batch_size_option: BSO_DYNAMIC  # 使得编译后的模型支持动态 batch
+    batch_size_option: BSO_DYNAMIC # Make the compiled model support dynamic batch
     batch_size: 1
     batch_size: 2
-    batch_size: 4  # 最大 batch_size 为 4, 要求 batch_size 为 1 2 或 4 时推理保持较高性能
+    batch_size: 4 # Maximum batch_size is 4, requiring high performance for inference with batch_size of 1 2 or 4
   }
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-配置静态 ``batch``
+Configure static ``batch``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-与 :ref:`动态 batch_size <dynamic_batch_size>` 相比, 静态 ``batch`` 的配置更为简单, 配置参考如下:
+Compared to :ref:``dynamic_batch_size <dynamic_batch_size>``, static ``batch`` is simpler to configure, as follows:
 
 .. code-block:: bash
   :linenos:
 
   pulsar_conf {
-    batch_size: 8  # batch_size 为 8, 也可以是其他值
+    batch_size: 8  # batch_size can be 8 or other value
   }

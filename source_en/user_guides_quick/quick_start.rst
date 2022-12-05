@@ -2,64 +2,64 @@
 Quick Start
 ======================
 
-本章节将依次介绍:
+This section will cover in turn:
 
-* 如何在不同系统环境下安装 ``Docker``
-* 如何启动 ``Docker`` 容器
-* 如何利用 ``Pulsar Docker`` 工具链将 ``onnx`` 模型转换为 ``joint`` 模型
-* 如何使用 ``joint`` 模型在 ``x86`` 平台上仿真运行
-* 如何衡量 ``joint`` 的推理结果与 ``onnx`` 推理结果之间的差异度(内部称之为 ``对分``)
+* How to install ``Docker`` on different system environments
+* How to start a ``Docker`` container
+* How to convert ``onnx`` models to ``joint`` models using the ``Pulsar Docker`` toolchain
+* How to use ``joint`` models to run emulations on ``x86`` platforms
+* How to measure the degree of difference between the inference results of ``joint`` and the inference results of ``onnx`` (internally called ``pairwise splitting``)
 
-本章节提到的模型的板上运行速度是基于工具链 ``axera_neuwizard_v0.6.1.14.tar.gz`` 编译生成的, 并不作为实际性能评估的依据.
+The onboard speed of the model mentioned in this section is based on the toolchain ``axera_neuwizard_v0.6.1.14.tar.gz`` compiled and generated, and is not used as a basis for actual performance evaluation.
 
 .. note::
 
-    所谓 ``对分``, 即对比工具链编译前后的同一个模型不同版本 (文件类型) 推理结果之间的误差.
+    The so-called ``pairwise splitting``, i.e., comparing the error between the inference results of different versions (file types) of the same model before and after the toolchain is compiled.
 
 .. _dev_env_prepare:
 
-----------------------
-开发环境准备
-----------------------
+--------------------------------------------
+Development Environment Preparation
+--------------------------------------------
 
-本节介绍使用 ``Pulsar`` 工具链前的开发环境准备工作.
+This section describes the development environment preparation before using the ``Pulsar`` toolchain.
 
-``Pulsar`` 使用 ``Docker`` 容器进行工具链集成, 用户可以通过 ``Docker`` 加载 ``Pulsar`` 镜像文件, 然后进行模型转换、编译、仿真等工作, 因此开发环境准备阶段只需要正确安装 ``Docker`` 环境即可. 支持的系统 ``MacOS``, ``Linux``, ``Windows``.
+``Pulsar`` uses ``Docker`` containers for toolchain integration. Users can load ``Pulsar`` image files through ``Docker`` and then perform model conversion, compilation, simulation, etc. Therefore, the development environment preparation stage only requires the correct installation of the ``Docker`` environment. Supported systems ``MacOS``, ``Linux``, ``Windows``.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-安装 Docker 开发环境
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing the Docker development environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `MacOS 安装 Docker 环境 <https://docs.docker.com/desktop/mac/install/>`_
+- `MacOS Installing a Docker Environment <https://docs.docker.com/desktop/mac/install/>`_
 
-- `Linux 安装 Docker 环境 <https://docs.docker.com/engine/install/##server>`_
+- `Linux Installing a Docker Environment <https://docs.docker.com/engine/install/##server>`_
 
-- `Windows 安装 Docker 环境 <https://docs.docker.com/desktop/windows/install/>`_
+- `Windows install Docker environment <https://docs.docker.com/desktop/windows/install/>`_
 
-``Docker`` 安装成功后, 输入 ``sudo docker -v``
+After ``Docker`` is successfully installed, type ``sudo docker -v``
 
 .. code-block:: shell
 
     $ sudo docker -v
     Docker version 20.10.7, build f0df350
 
-显示以上内容, 说明 ``Docker`` 已经安装成功. 下面将介绍 ``Pulsar`` 工具链 ``Image`` 的安装和启动.
+If the above is displayed, it means ``Docker`` has been installed successfully. The following section describes the installation and startup of the ``Pulsar`` toolchain ``Image``.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-安装 Pulsar 工具链
+Installing the Pulsar toolchain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-以系统版本为 ``Ubuntu 18.04``、工具链 ``axera_neuwizard_v0.6.1.14.tar.gz`` 为例说明 ``Pulsar`` 工具链的安装方法.
-工具链获取途径：
+The installation of the ``Pulsar`` toolchain is illustrated with the system version ``Ubuntu 18.04`` and the toolchain ``axera_neuwizard_v0.6.1.14.tar.gz``.
+Toolchain access.
 
-- 从 AXera-Pi 开发者社区 `获取 <https://wiki.sipeed.com/ai/zh/deploy/ax-pi.html#%E4%B8%8B%E8%BD%BD%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7>`_；
-- 通过企业途径向 AXera 签署 NDA 后由其技术支持人员释放。
+- `Obtain <https://wiki.sipeed.com/ai/zh/deploy/ax-pi.html#%E4%B8%8B%E8%BD%BD%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7>`_ from the AXera-Pi developer community.
+- Released by AXera technical support after signing an NDA with them through the corporate channel.
 
 ^^^^^^^^^^^^^^^^^^^^^^^
-载入 Docker Image
+Loading Docker Image
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-解压 ``axera_neuwizard_v0.6.1.14.tar.gz`` 后进入 ``axera_neuwizard_v0.6.1.14`` 目录, 运行 ``install.sh`` 脚本, 加载工具链镜像文件. 代码示例如下:
+Unzip ``axera_neuwizard_v0.6.1.14.tar.gz`` and enter the ``axera_neuwizard_v0.6.1.14`` directory, run the ``install.sh`` script, and load the toolchain image file. The code example is as follows:
 
 .. code-block:: shell
 
@@ -69,7 +69,7 @@ Quick Start
     axera_neuwizard_0.6.1.14.tgz  install.sh  VERSION
     $ sudo ./install.sh
 
-其中 ``install.sh`` 为可执行脚本, 用于加载 ``.tgz`` 镜像文件. 正确导入镜像文件会打印以下日志:
+where ``install.sh`` is an executable script that loads the ``.tgz`` image file. Importing the image file correctly will print the following log:
 
 .. code-block:: shell
 
@@ -84,62 +84,62 @@ Quick Start
     9758fe1f19bd: Loading layer [==================================================]   2.56kB/2.56kB
     Loaded image: axera/neuwizard:0.6.1.14
 
-完成后, 执行 ``sudo docker image ls``
+When finished, run ``sudo docker image ls``
 
 .. code-block:: shell
 
     $ sudo docker image ls
-    # 打印以下数据
-    REPOSITORY                               TAG           IMAGE ID       CREATED         SIZE
-    axera/neuwizard                          0.6.1.14       2124c702c879   3 weeks ago     3.24GB
+    # Print the following data
+    REPOSITORY TAG IMAGE ID CREATED SIZE
+    axera/neuwizard 0.6.1.14 2124c702c879 3 weeks ago 3.24GB
 
-可以看到工具链镜像已经成功载入, 之后便可以基于此镜像启动容器.
+You can see that the toolchain image has been loaded successfully, and you can start the container based on it.
 
 ^^^^^^^^^^^^^^^^^^^^^^^
-启动工具链镜像
+Launch Toolchain Mirror
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. attention::
 
-    ``Pulsar`` 工具链基于 ``Docker`` 容器构建, 运行时对物理机内存要求较高, 通常推荐物理机内存至少为 ``32G`` 及以上, 
-    在模型转换期间如果内存不足, 可能会出现 ``neuwizard killed by SIGKILL`` 错误.
+    The ``Pulsar`` toolchain is built on ``Docker`` containers and requires a high level of memory on the physical machine, usually at least ``32G`` or more is recommended, 
+    If the memory is not enough during the model conversion, ``neuwizard killed by SIGKILL`` error may occur.
 
-执行以下命令启动 ``Docker`` 容器, 运行成功后进入 ``bash`` 环境
+Execute the following command to start the ``Docker`` container, and enter the ``bash`` environment after a successful run
 
 .. code-block:: shell
 
-    $ sudo docker run -it --net host --rm --shm-size 32g -v $PWD:/data axera/neuwizard:0.6.1.14
+    $ sudo docker run --it --net host --rm --shm-size 32g -v $PWD:/data axera/neuwizard:0.6.1.14
 
-其中 ``--shm-size`` 参数推荐设置为 ``32g`` 及以上,  ``-v`` 参数控制外部文件夹与容器内部文件夹的映射, 例如 ``$PWD:/data`` 表示将当前文件夹映射至容器中的 ``/data`` 文件夹下. 
+The ``-shm-size`` parameter is recommended to be set to ``32g`` and above, and the ``-v`` parameter controls the mapping of the external folder to the internal folder of the container, for example ``$PWD:/data`` means the current folder is mapped to the ``/data`` folder in the container. 
 
 .. _model_compile_and_sim:
 
--------------------------
-模型编译仿真以及对分说明
--------------------------
+----------------------------------------------------------------------------------------------------
+Model compilation and simulation, as well as the description of the pair of scores
+----------------------------------------------------------------------------------------------------
 
-本章节介绍 ``ONNX`` 模型转换的基本操作, 使用 ``pulsar`` 工具将 ``ONNX``  模型编译成 ``joint`` 模型. 请先参考 :ref:`开发环境准备 <dev_env_prepare>` 章节完成开发环境搭建. 
-本节示例模型为开源模型 ``ResNet18``.
+This section describes the basic operation of ``ONNX`` model conversion, using the ``pulsar`` tool to compile ``ONNX`` models into ``joint`` models. Please refer to the :ref:`Development Environment Preparation <dev_env_prepare>` section to complete the development environment. 
+The example model in this section is the open source model ``ResNet18``.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-数据准备
+Data preparation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. hint::
 
-    本章节所需模型 ``ResNet18`` 及相关依赖已在 ``quick_start_example`` 文件夹中提供 `quick_start_example.zip 下载地址 <https://github.com/AXERA-TECH/ax-samples/releases/download/v0.3/quick_start_example.zip>`_  然后将下载的文件解压后拷贝到 ``docker`` 的 ``/data`` 路径下.
+    The model ``ResNet18`` and related dependencies for this section are provided in the ``quick_start_example`` folder `quick_start_example.zip Downloaded from <https://github.com/AXERA-TECH/ax-samples/releases/download/v0.3/quick_start_example.zip>`_ Then unzip the downloaded file and copy it to ``docker`` under the ``/data`` path.
 
-成功启动工具链镜像后, 将 ``quick_start_example.zip`` 解压后得到的五个文件夹复制到 ``/data`` 文件夹中, 然后执行
+After successfully starting the toolchain image, copy the five folders from ``quick_start_example.zip`` to the ``/data`` folder, and then execute
 
 .. code-block:: shell
 
     root@xxx:/data# ls
-    config  dataset  gt  images  model
+    config dataset gt images model
 
-其中 ``model`` 文件夹中用于存放待编译的 ``ONNX`` 模型文件, ``dataset`` 用于存放 ``PTQ`` (Post-Training Quantization) 所需的 ``Calibration`` 数据集 (数据集以 ``.tar`` 格式打包), 
-``config`` 文件夹用于存放模型编译所需的配置文件, ``gt`` 用于存放仿真运行的结果数据, ``images`` 用于存放测试图像.
+The ``model`` folder holds the ``ONNX`` model files to be compiled, and the ``dataset`` holds the ``Calibration`` dataset for the ``PTQ`` (Post-Training Quantization) (the dataset is packaged in ``.tar`` format), 
+The ``config`` folder is used to store the configuration files needed to compile the model, ``gt`` is used to store the results of the simulation runs, and ``images`` is used to store the test images.
 
-数据准备工作完毕后, 目录树结构如下:
+After the data preparation, the directory tree structure is as follows:
 
 .. code-block:: shell
 
@@ -160,17 +160,17 @@ Quick Start
 
 .. hint::
 
-    工具链 ``docker`` 中没有预装 ``tree`` 命令, 可以在 ``docker`` 外部查看.
+    The ``tree`` command is not pre-installed in the toolchain ``docker``, and can be viewed outside of ``docker``.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-命令说明
+Command description
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``Pulsar`` 工具链中的功能指令以 ``pulsar`` 开头, 与用户强相关的命令为 ``pulsar build`` , ``pulsar run`` 以及 ``pulsar version``. 
+The functional commands in the ``Pulsar`` toolchain start with ``pulsar``, and the user-strong related commands are ``pulsar build`` , ```pulsar run`` and ``pulsar version``. 
 
-* ``pulsar build`` 用于将 ``onnx`` 模型转换为 ``joint`` 格式模型
-* ``pulsar run`` 用于模型转换前后的 ``对分`` 验证
-* ``pulsar version`` 可以用于查看当前工具链的版本信息, 通常在反馈问题时需要提供此信息
+* ``pulsar build`` is used to convert ``onnx`` models to ``joint`` format models
+* ``pulsar run`` is used for ``joint`` validation before and after model conversion
+* ``pulsar version`` can be used to see the current version of the toolchain, which is usually required for feedback issues
 
 .. code-block:: shell
 
@@ -190,21 +190,21 @@ Quick Start
     -h, --help            show this help message and exit
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-配置文件说明
+Configuration file description
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``/data/config/`` 路径下的 ``config_resnet18.prototxt`` 展示:
+``config_resnet18.prototxt`` under the ``/data/config/`` path Show:
 
 .. code-block:: shell
 
-    # 基本配置参数：输入输出
+    # Basic configuration parameters: input and output
     input_type: INPUT_TYPE_ONNX
     output_type: OUTPUT_TYPE_JOINT
 
-    # 硬件平台选择
+    # Hardware platform selection
     target_hardware: TARGET_HARDWARE_AX620
 
-    # CPU 后端选择，默认采用 AXE
+    # CPU backend selection, default is AXE
     cpu_backend_settings {
         onnx_setting {
             mode: DISABLED
@@ -217,17 +217,17 @@ Quick Start
         }
     }
 
-    # 模型输入数据类型设置
+    # Model input data type settings
     src_input_tensors {
         color_space: TENSOR_COLOR_SPACE_RGB
     }
 
     dst_input_tensors {
         color_space: TENSOR_COLOR_SPACE_RGB
-        # color_space: TENSOR_COLOR_SPACE_NV12	# 若输入数据是 NV12, 则使用该配置
+        # color_space: TENSOR_COLOR_SPACE_NV12 # If the input data is NV12, then this configuration is used
     }
 
-    # neuwizard 工具的配置参数
+    # Configuration parameters for the neuwizard tool
     neuwizard_conf {
         operator_conf {
             input_conf_items {
@@ -241,24 +241,24 @@ Quick Start
                     }
                     input_modifications {
                         input_normalization {
-                            mean: [0.485,0.456,0.406]  ## 均值
-                            std: [0.229,0.224,0.255]   ## 方差
+                            mean: [0.485,0.456,0.406]  ## mean
+                            std: [0.229,0.224,0.255]   ## std
                         }
                     }
                 }
             }
         }
         dataset_conf_calibration {
-            path: "../dataset/imagenet-1k-images.tar" # 设置 PTQ 校准数据集路径
-            type: DATASET_TYPE_TAR         # 数据集类型：tar 包
-            size: 256                      # 量化校准过程中实际使用的图片张数
+            path: "... /dataset/imagenet-1k-images.tar" # Set the path to the PTQ calibration dataset
+            type: DATASET_TYPE_TAR # dataset type: tarball
+            size: 256 # The actual number of images used in the quantitative calibration process
             batch_size: 1
-        }
+        batch_size: 1}
 
         dataset_conf_error_measurement {
-            path: "../dataset/imagenet-1k-images.tar"
-            type: DATASET_TYPE_TAR         # 数据集类型: tar 包
-            size: 4                        # 逐层对分过程中实际使用的图片张数
+            path: "... /dataset/imagenet-1k-images.tar"
+            type: DATASET_TYPE_TAR # Dataset type: tarball
+            size: 4 # The actual number of images used in the layer-by-layer pairing process
         }
 
         evaluation_conf {
@@ -270,31 +270,31 @@ Quick Start
         }  
     }
 
-    # 输出 layout 设置, 建议使用 NHWC, 速度更快
+    # Output layout settings, NHWC is recommended for faster speed
     dst_output_tensors {
         tensor_layout:NHWC
-    }
+    tensor_layout:NHWC }
 
-    # pulsar compiler 的配置参数
+    # configuration parameters for pulsar compiler
     pulsar_conf {
-        ax620_virtual_npu: AX620_VIRTUAL_NPU_MODE_111	# 业务场景需要使用 ISP, 则必须使用 vNPU 111 配置, 1.8Tops 算力给用户的算法模型
+        ax620_virtual_npu: AX620_VIRTUAL_NPU_MODE_111 # business scenario requires the use of ISP, then the vNPU 111 configuration must be used, 1.8Tops arithmetic power to the user's algorithm model
         batch_size: 1
         debug : false
     }
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-模型编译
+Model Compilation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-以 ``resnet18.onnx`` 为例, 在 ``docker`` 中执行如下 ``pulsar build`` 命令编译生成 ``resnet18.joint``:
+Take ``resnet18.onnx`` as an example, execute the following ``pulsar build`` command in ``docker`` to compile ``resnet18.joint``:
 
 .. code-block:: shell
 
-    # 模型转换指令, 可直接复制运行
+    # Model conversion commands, which can be copied and run directly
     pulsar build --input model/resnet18.onnx --output model/resnet18.joint --config config/config_resnet18.prototxt --output_config config/output_config.prototxt
 
 
-**log 参考信息**
+**log reference information**
 
 .. code-block:: python
 
@@ -312,26 +312,26 @@ Quick Start
 
 .. attention::
 
-    ``resnet18.onnx`` 模型在硬件配置为:
+    ``resnet18.onnx`` model in hardware configuration of:
 
         - Intel(R) Xeon(R) Gold 6130 CPU @ 2.10GHz
         - Memory 32G
 
-    的服务器上的转换时间大概是 ``3min`` 左右, 不同配置机器可能转换时间不同, 需要耐心等待.
+    The conversion time on a server with Intel(R) Xeon(R) Gold 6130 CPU @ 2.10GHz Memory 32G is about ``3min``, which may vary from machine to machine, so be patient.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-上板测速
+Upper board speed measurement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-在 ``pulsar build`` 阶段生成的 ``resnet18.joint`` 模型可以在社区开发板 `AX-Pi <https://item.taobao.com/item.htm?_u=m226ocm5e25&id=682169792430>`_ 或者官方 EVB 上通过 ``run_joint`` 指令进行模型测速, 步骤如下:
+The ``resnet18.joint`` model generated during the ``pulsar build`` phase can be speed tested on the community board ``AX-Pi <https://item.taobao.com/item.htm?_u=m226ocm5e25&id=682169792430>`_ or the official EVB using the ``run_joint`` command, as follows:
 
-- 首先通过 ``ssh`` 或 ``串口通信`` 的方式连接 **AX-Pi**
+- First connect to the **AX-Pi** via ``ssh`` or ``serial communication``.
 
-- 然后将 ``resnet18.joint`` 模型拷贝或挂载到开发板的任意文件夹下
+- Then copy or mount the ``resnet18.joint`` model to any folder on the development board.
 
-- 最后执行指令 ``run_joint resnet18.joint --repeat 100 --warmup 10``
+- Finally execute the command ``run_joint resnet18.joint --repeat 100 --warmup 10``
 
-**Resnet18 测速日志示例**
+**Resnet18 speed log example**
 
 .. code-block:: bash
 
@@ -378,9 +378,9 @@ Quick Start
 
 .. hint::
 
-    在上述日志中, ``resnet18`` 的 ``NPU`` 推理耗时为 ``5.415ms`` (``NEU`` 文件在 ``NPU`` 上执行), 无 ``CPU`` 耗时, ``overhead`` 为模型解压、解析、加载以及内存分配所用的时间, 只初始化一次, 在实际应用中可以忽略.
+    In the above log, the ``NPU`` inference time for ``resnet18`` is ``5.415ms`` (the ``NEU`` file is executed on the ``NPU``), no ``CPU`` time is consumed, ``overhead`` is the time used for model decompression, parsing, loading and memory allocation, which is initialized only once and can be ignored in real applications.
 
-在某些情况下, 转换后的模型会包含 ``CPU 尾巴`` (指运行在 ``CPU`` 上的 ``DAG`` 子图, 子图模型以 ``.onnx`` 或 ``.axe`` 结尾), 包含 ``CPU`` 尾巴的模型测速日志示例如下:
+In some cases, the transformed model will contain a ``CPU tail`` (a ``DAG`` subgraph running on the ``CPU`` that ends in ``.onnx`` or ``.axe``), and an example of a model speed log with a ``CPU`` tail is shown below:
 
 .. code-block:: bash
 
@@ -414,10 +414,10 @@ Quick Start
         Run NEU took an average of 32626 us (overhead 22 us)
         Run AXE took an average of 43 us (overhead 4 us)
 
-从上述示例可以看出, ``NPU`` 推理耗时 ``32.626ms``, ``CPU`` 耗时 ``43us``, 模型推理的总耗时为 ``NPU`` 耗时与 ``CPU`` 耗时之和, 为 ``32.744ms``.
-(P.S.: 这段示例中的 resnet50 为了演示异构切图的功能进行了网络结构修改，不作为 resnet50 速度评估参考)
+From the above example, we can see that ``NPU`` inference time is ``32.626ms``, ``CPU`` time is ``43us``, and the total time of model inference is the sum of ``NPU`` time and ``CPU`` time, which is ``32.744ms``.
+(P.S.: The network structure of resnet50 in this example has been modified to demonstrate the functionality of the heterogeneous cut map, and is not used as a reference for resnet50 speed evaluation)
 
-**run_joint 指令说明**
+**run_joint command description**
 
 .. code-block:: bash
 
@@ -441,23 +441,23 @@ Quick Start
 
 .. _pulsar_run_sim:
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-x86仿真运行与对分说明
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+x86 emulation run and pair splitting instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. attention::
 
-    注意, 本节所有内容基于工具链 ``axera_neuwizard_v0.6.1.14``, 在不同版本中, 
-    指令参数可能会不同, 使用 ``pulsar run -h`` 指令可以方便观察指令输入参数列表. 其他命令也可以采用相同方法查看参数列表.
+    Note, this section is based on the toolchain ``axera_neuwizard_v0.6.1.14``, which is available in different versions, 
+    The command parameters may be different in different versions, so use the ``pulsar run -h`` command to see the list of command input parameters. Other commands can be used to view the argument list in the same way.
 
-在 ``docker`` 中执行 ``pulsar run`` 命令可以获得 ``onnx`` 和 ``joint`` 模型的推理结果以及模型输出结果之间的差异程度:
+Executing the ``pulsar run`` command in ``docker`` gives you the inference results of the ``onnx`` and ``joint`` models and the degree of difference between the model outputs:
 
 .. code-block:: shell
 
-    # 模型仿真与对分指令, 可直接复制运行
+    # Model emulation and pair splitting instructions, can be directly copied and run
     pulsar run model/resnet18.onnx model/resnet18.joint --input images/img-319.jpg --config config/output_config.prototxt --output_gt gt/
 
-**log 信息参考**
+**log information reference**
 
 .. code-block:: shell
 
@@ -473,13 +473,13 @@ x86仿真运行与对分说明
     ---------------------------  ----------------  ------------------
     Layer: resnetv15_dense0_fwd  2-norm RE: 4.70%  cosine-sim: 0.9989
 
-从输出日志中可以获得模型输出的 ``layer_name``, L2正则化以及余弦相似度. 通过余弦相似度(cosine-sim)的结果可直观展示模型精度损失情况(本质上是比较 ``onnx`` 与 ``joint`` 模型推理结果的差异).
+The ``layer_name``, L2 regularization and cosine similarity of the model output can be obtained from the output log. The cosine similarity (cosine-sim) results provide a visualization of the loss of model accuracy (essentially comparing the difference between the inference results of the ``onnx`` and ``joint`` models).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-输出文件说明
+Output file description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-执行 ``pulsar build`` 和 ``pulsar run`` 命令后生成的文件说明:
+A description of the file generated after executing the ``pulsar build`` and ``pulsar run`` commands:
 
 .. code-block:: shell
 
@@ -487,22 +487,22 @@ x86仿真运行与对分说明
 
     .
     ├── config
-    │   ├── config_resnet18.prototxt  # 模型编译配置文件
-    │   └── output_config.prototxt    # pulsar run 所需配置文件
+    │   ├── config_resnet18.prototxt  # Model compilation configuration file
+    │   └── output_config.prototxt    # pulsar run required configuration files
     ├── dataset
-    │   └── imagenet-1k-images.tar    # 校准数据集
-    ├── gt                            # 可用于板上运行 demo 的输入数据
+    │   └── imagenet-1k-images.tar    # Calibration data set
+    ├── gt                            # Input data that can be used to run the demo on the board
     │   ├── input
     │   │   ├── data.bin
     │   │   ├── data.npy
     │   │   └── filename.txt
-    │   ├── joint                     # joint 模型仿真运行的输出数据
+    │   ├── joint                     # output data from joint model simulation runs
     │   │   ├── resnetv15_dense0_fwd.bin
     │   │   └── resnetv15_dense0_fwd.npy
-    │   └── onnx                      # onnx 模型仿真运行的输出数据
+    │   └── onnx                      # Output data from the onnx model simulation run
     │       ├── resnetv15_dense0_fwd.bin
     │       └── resnetv15_dense0_fwd.npy
-    ├── images                        # 测试图片
+    ├── images                        # Test images
     │   ├── cat.jpg
     │   ├── img-319.jpg
     │   ├── img-416.jpg
@@ -516,48 +516,48 @@ x86仿真运行与对分说明
     │           └── inference_report.log
     └── model
         ├── model.lava_joint
-        ├── resnet18.joint            # 编译生成的 Joint 模型
-        └── resnet18.onnx             # 原始的 ONNX 模型
+        ├── resnet18.joint            # Compile-generated Joint model
+        └── resnet18.onnx             # Original ONNX model
 
     12 directories, 20 files
 
 .. hint::
 
-    ``pulsar run`` 输出的 ``gt`` 文件夹中保存了 ``onnx`` 和 ``joint`` 模型的仿真推理结果, 可以用于手动对分(``x86`` 平台下 ``joint`` 仿真结果与板上输出结果之间的对分)和解析 ``joint`` 模型的输出结果.
+    The ``gt`` folder of the ``pulsar run`` output holds the simulation inference results for the ``onnx`` and ``joint`` models, which can be used to manually map (between the ``joint`` simulation results on the ``x86`` platform and the onboard output) and parse the output of the ``joint`` models.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-解析 ``joint`` 模型的推理结果
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Parsing the inference results of the ``joint`` model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``gt`` 文件树如下:
+The ``gt`` file tree is as follows:
 
 .. code-block:: bash
 
     $ tree gt
     gt
-    ├── input  # onnx 和 joint 模型的输入数据
+    ├── input  # input data for onnx and joint models
     │   ├── data.bin
     │   ├── data.npy
     │   └── filename.txt
-    ├── joint  # joint 模型的推理结果
+    ├── joint  # Inference results for the joint model
     │   ├── resnetv15_dense0_fwd.bin
     │   └── resnetv15_dense0_fwd.npy
-    └── onnx  # onnx 模型的推理结果
+    └── onnx  # Inference results for the onnx model
         ├── resnetv15_dense0_fwd.bin
         └── resnetv15_dense0_fwd.npy
 
     3 directories, 7 files
 
-* 在 ``input`` 文件夹中给出了模型的输入数据, 共两种形式: ``.bin`` 和 ``.npy``, 包含相同的数据信息.
-* 在 ``onnx`` 和 ``joint`` 文件夹下分别给出了模型的推理结果, 可以根据需要对模型的输出结果进行处理, 以满足不同的需求.
+* The input data of the model is given in the ``input`` folder, in two forms: ``.bin`` and ``.npy``, containing the same data information.
+* The inference results of the model are given in the ``onnx`` and ``joint`` folders, respectively, and the output of the model can be processed to meet different needs.
 
-下面以 ``resnet18`` 为例, 说明如何对模型的推理结果进行处理, ``resnet18`` 模型的输出结构如下:
+The following is an example of how to process the inference results of ``resnet18`` model, which has the following output structure:
 
 .. figure:: ../media/resnet18_output.png
     :alt: resnet18_output
     :align: center
 
-输出 shape 为 (1, 1000) 的分类结果, 示例代码 (``parse_gt.py``) 如下:
+The sample code (``parse_gt.py``) for outputting the classification result with shape (1, 1000) is as follows:
 
 .. code-block:: bash
 
@@ -568,7 +568,7 @@ x86仿真运行与对分说明
     import logging
 
 
-    # 注意: 示例代码基于 resnet18 模型, 其他模型可以根据实际情况修改
+    # Note: The sample code is based on the resnet18 model, other models can be modified as appropriate
     if __name__ == '__main__':
         import argparse
         parser = argparse.ArgumentParser()
@@ -592,7 +592,7 @@ x86仿真运行与对分说明
             for idx in indices:
                 logging.warning(f"idx: {idx}, classification result: {imgnet1000_clsidx_dict[str(idx)]}")
         
-        if len(args.npy) == 2:  # 对两个 npy 进行对分, 无输出, 则表示对分成功
+        if len(args.npy) == 2:  # Pair the two npy's, no output, then the pairing is successful
             npy1 = np.load(args.npy[0])
             npy2 = np.load(args.npy[1])
             assert not math.isnan(npy1.sum()) and not math.isnan(npy2.sum())
@@ -604,13 +604,13 @@ x86仿真运行与对分说明
             except AssertionError:
                 logging.warning("abs(npy1 - npy2).max() = ", abs(npy1 - npy2).max())
 
-通过执行以下指令
+By executing the following commands
 
 .. code-block:: bash
 
      python3 parse_gt.py  gt/onnx/resnetv15_dense0_fwd.npy gt/joint/resnetv15_dense0_fwd.npy --atol 100000 --rtol 0.000001
 
-输出结果示例:
+Example of output results:
 
 .. code-block:: python
 
@@ -630,27 +630,27 @@ x86仿真运行与对分说明
 
 .. hint::
 
-    ``parse_gt.py`` 中支持对两个 ``npy`` 进行对分, 执行后若没有相关对分日志输出, 则表示对分成功.
+    ``parse_gt.py`` supports parsing two ``npy``. If no parsing log is output after execution, the parsing is successful.
 
 .. _pulsar_run_gt_compare:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-``gt`` 文件对分具体操作说明
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Instructions for ``gt`` file splitting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. hint::
 
-    手动对分在一般情况下是非必要的, 通过 ``pulsar run`` 观察 ``cosine-sim`` 可以很方便地观察模型精度损失情况.
+    Manual bisection is generally not necessary, and the loss of model accuracy can be easily observed by observing ``cosine-sim`` with ``pulsar run``.
 
-手动对分需要手动构建对分脚本, 具体参考如下:
+Manual alignment requires building the alignment script manually, as described below:
 
 .. code-block:: bash
 
-  # 创建对分使用的脚本文件
+  # Create the script file used for the score
 
   $ vim compare_fp32.py
 
-``compare_fp32.py`` 内容如下:
+``compare_fp32.py`` reads as follows:
 
 .. code-block:: python
 
@@ -690,63 +690,62 @@ x86仿真运行与对分说明
           else:
               print(abs(a - b).max())
 
-脚本创建成功后, 执行如下命令, 得到 ``joint`` 模型实际上板结果:
+After the script is created successfully, execute the following command to get the ``joint`` model results in the actual board:
 
 .. code-block:: bash
 
-  run_joint resnet18.joint --data gt/input/data.bin  --bin-out-dir out/ --repeat 100
+  run_joint resnet18.joint --data gt/input/data.bin --bin-out-dir out/ --repeat 100
 
-``joint`` 上板结果保存在 ``out`` 文件夹中.
+The ``joint`` upboarding results are saved in the ``out`` folder.
 
 .. code-block:: bash
 
   $ python3 compare_fp32.py --atol 100000 --rtol 0.000001 gt/joint/resnetv24_dense0_fwd.bin out/resnetv24_dense0_fwd.bin
 
-命令执行后, 无任何返回结果即为对分成功.
+After executing the command, no result is returned, which means the pairing is successful.
 
 .. _onboard_running:
 
-----------------------
-开发板运行
-----------------------
+--------------------------------------------
+Development board running
+--------------------------------------------
 
-本章节介绍如何在 ``AX-Pi`` 开发板上运行通过 :ref:`模型编译仿真 <model_compile_and_sim>` 章节获取 ``resnet18.joint`` 模型. 
-示例中给出了一个 分类网络 如何对输入图像进行分类, 而更具体的内容, 例如通过开源项目 `ax-samples <https://github.com/AXERA-TECH/ax-samples>`_ 源码编译生成可执行程序 ``ax_classification`` 
-以及其他示例（物体检测、图像分割、人体关键点等）, 请参考 :ref:`模型部署详细说明 <model_deploy_advanced>` 章节.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-开发板获取
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- 通过 **AX-Pi** 指定淘宝商城购买获取 (`购买链接 <https://item.taobao.com/item.htm?_u=m226ocm5e25&id=682169792430>`_);
-- 通过企业途径向 AXera 签署 NDA 后获取 **EVB**.
+This section describes how to run the ``resnet18.joint`` model on the ``AX-Pi`` development board, obtained via the :ref:`Model Compile Simulation <model_compile_and_sim>` section. 
+The example shows how a classification network can classify an input image, but more specifically, for example, the source code of the open source project `ax-samples <https://github.com/AXERA-TECH/ax-samples>`_ is compiled to generate an executable For other examples (object detection, image segmentation, human keypoints, etc.), please refer to the :ref:`Detailed description of model deployment <model_deploy_advanced>` section.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-板上运行的数据准备
+Development Board Acquisition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Acquired through **AX-Pi** designated Taobao Mall (`Purchase link <https://item.taobao.com/item.htm?_u=m226ocm5e25&id=682169792430>`_);
+- Get **EVB** after signing the NDA with AXera through the corporate channel.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Data preparation for onboard operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. hint::
 
-    上板运行示例已经打包放在 ``demo_onboard`` 文件夹下 `demo_onboard.zip 下载地址 <https://github.com/AXERA-TECH/ax-samples/releases/download/v0.3/demo_onboard.zip>`_
-    将下载后的文件解压, 其中 ``ax_classification`` 为预先交叉编译好的可在 ``AX-Pi`` 开发板上运行的分类模型可执行程序. 
-    ``resnet18.joint`` 为编译好的分类模型, ``cat.jpg`` 为测试图像.
+    The upper board runtime example has been packaged in the ``demo_onboard`` folder `demo_onboard.zip download link <https://github.com/AXERA-TECH/ax-samples/releases/download/v0.3/demo_onboard.zip>`_
+    Extract the downloaded file, where ``ax_classification`` is the pre-cross-compiled classification model executable that can be run on the ``AX-Pi`` development board. 
+    ``resnet18.joint`` is the compiled classification model, and ``cat.jpg`` is the test image.
 
-将 ``ax_classification``、 ``resnet18.joint``、 ``cat.png`` 拷贝到开发板上, 如果 ``ax_classification`` 缺少可执行权限, 可以通过以下命令添加
+Copy ``ax_classification``, ``resnet18.joint``, and ``cat.png`` to the board, and if ``ax_classification`` lacks executable permissions, you can add them with the following command
 
 .. code-block:: shell
 
-    /root/sample # chmod a+x ax_classification  # 添加执行权限
+    /root/sample # chmod a+x ax_classification  # Add execution rights
     /root/sample # ls -l
     total 15344
     -rwxrwxr-x    1 1000     1000       3806352 Jul 26 15:22 ax_classification
     -rw-rw-r--    1 1000     1000        140391 Jul 26 15:22 cat.jpg
     -rw-rw-r--    1 1000     1000      11755885 Jul 26 15:22 resnet18.joint
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-在板上运行 ``Resnet18`` 分类模型
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Run ``Resnet18`` classification model on the board
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``ax_classification`` 输入参数说明: 
+``ax_classification`` Input parameter description: 
 
 .. code-block:: shell
 
@@ -759,7 +758,7 @@ x86仿真运行与对分说明
     -r, --repeat    repeat count (int [=1])
     -?, --help      print this message
 
-通过执行 ``ax_classification`` 程序实现分类模型板上运行, 运行结果如下:
+The classification model is implemented on the board by executing the ``ax_classification`` program, and the results are as follows:
 
 .. code-block:: shell
 

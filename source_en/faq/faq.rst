@@ -3,101 +3,102 @@ FAQ
 =========================
 
 -------------------------
-基本问题
+Basic Questions
 -------------------------
 
-.. data:: 如果遇到长时间无法解决的问题
+.. data:: If you encounter a problem that cannot be solved for a long time
 
-  如果遇到长时间无法解决的问题, 请联系相关 ``FAE`` 同学支持. 同时也需要注意, 尽量使用 **最新版本** 的工具链进行模型转换.
+  If you encounter problems that take a long time to resolve, please contact the relevant ``FAE`` for support. Also note that you should try to use the **latest version** of the toolchain for model conversion.
 
-.. data:: joint 模型基本信息
+.. data:: joint Basic model information
 
-    ``joint`` 模型基本信息:
-      - 模型输入 ``tensor`` 的 ``DType`` 默认为 ``UINT8``, ``Layout`` 为 ``NHWC``.
-      - 模型输出 ``tensor`` 的 ``DType`` 默认为 ``FLOAT32``, ``Layout`` 为 ``NCHW``.
-      - ``ColorSpace``: 默认为 ``TENSOR_COLOR_SPACE_AUTO``, 可以根据模型输入 ``channel`` 数自动识别
+    ``joint`` model basic information:
+      - Model input ``DType`` of ``tensor`` defaults to ``UINT8`` and ``Layout`` to ``NHWC``.
+      - Model output ``DType`` of ``tensor`` defaults to ``FLOAT32``, ``Layout`` is ``NCHW``.
+      - ``ColorSpace``: defaults to ``TENSOR_COLOR_SPACE_AUTO``, which can be automatically recognized based on the model input ``channel`` number
           - 3-channel: ``BGR``
           - 1-channel: ``GRAY``
-          - 其他可选: ``RGB``, ``NV12``, ``NV21``, ``BGR0``
+          - Other options: ``RGB``, ``NV12``, ``NV21``, ``BGR0``
 
-.. data:: 如果需要换 VNPU 设定, 需要重新编译, 而不能通过已有的 joint 直接更换 VNPU 设定
+.. data:: If you need to change the VNPU settings, you need to recompile, but you can't change the VNPU settings directly through the existing joint
 
-  想要做到直接通过 ``joint`` 模型来修改 ``vnpu`` 设定在技术上无法实现, 原因在于:
+  It is not technically possible to change the ``vnpu`` settings directly from the ``joint`` model, because:
   
-  1. 工具链在编译时需要根据输入的配置信息进行模型编译, 而编译是把最初的模型逐步变成二进制指令代码, 需要模型的很多原始信息
+  1. the toolchain needs to compile the model based on the input configuration information during compilation, and compilation is to gradually turn the initial model into binary instruction code, which requires a lot of raw information of the model
   
-  2. 编译又是不断 ``lowering`` 的过程, 会丢失信息, 编译后的二进制指令代码, 无法复原出最开始的模型信息
+  2. compilation is a continuous ``lowering`` process, which will lose information, and the compiled binary instruction code cannot recover the original model information.
   
-  3. 除此之外, 不同 ``vnpu`` 配置下会使用不同的硬件资源, 编译出的最优二进制模型不同
+  3. besides, different ``vnpu`` configurations will use different hardware resources and compile different optimal binary models
   
-  综上, 如果需要修改 ``vnpu`` 的模式, 需要重新进行转换.
+  In summary, if you need to modify the ``vnpu`` model, you need to do the conversion again.
 
-.. data:: 检测模型在转换过程中出现 OutOfMemory(OOM) 错误, 如何解决
+.. data:: Detection model has OutOfMemory(OOM) error during conversion, how to solve it
 
-  检测模型如果输出 ``layout`` 为 ``NCHW`` 的话,  会出现 ``OOM`` 错误, 这是
-  因为 ``NPU`` 默认输出 ``layout`` 为 ``NHWC``, 而检测模型输出的 ``featuremap`` 较大, 
-  直接 ``transpose`` 时容易挤爆内存. 因此检测模型转换时需要指定输出 ``layout``:
+  If the output ``layout`` of the detection model is ``NCHW``, the error ``OOM`` will appear, which is
+  This is because ``NPU`` outputs ``layout`` as ``NHWC`` by default, and the ``featuremap`` output by the detection model is larger, 
+  The ``transpose`` output of the model is large, so it is easy to crowd the memory when directly ``transpose``. Therefore, you need to specify the output ``layout`` when detecting the model transformation:
 
   .. code-block:: bash
 
     pulsar build --input xxx.onnx --config xxx.prototxt --output xxx.joint --output_tensor_layout nhwc
 
-.. data:: 如何查看 NPU 利用率
+.. data:: How to check NPU utilization rate
 
-  ``ssh`` 登录开发板后, 使用以下代码查看:
+  ``ssh`` After logging into the board, use the following code to view it:
 
-  .. code-block:: bash
+  ... code-block:: bash
 
     $ cd /proc/ax_npu
     $ echo 1 > enable
-    # Echo 1 >/proc/ax_proc/ax_npu/enable
+    # Echo 1 > /proc/ax_proc/ax_npu/enable
     $ cat top_period_ms
 
-.. data:: pulsar build 的 --config 和 --output_config 有什么区别
+.. data:: What is the difference between --config and --output_config for pulsar build
 
-  ``--config`` 是用户友好的 ``prototxt`` , 提供了多种简化配置的语法糖
+  ``--config`` is a user-friendly ``prototxt`` that provides a variety of syntactic sugar to simplify configuration
 
-  ``--output_config`` 会展开所有语法糖, 并保存成工具链友好的配置文件
+  ``--output_config`` expands all syntax sugars and saves them as toolchain-friendly configuration files
   
-  现阶段 ``pulsar run`` 仿真功能需要使用 ``--output_config`` 生成的配置文件
+  At this stage, the ``pulsar run`` emulation function requires the use of ``--output_config`` generated configuration files
 
-.. data:: pulsar build 中输出的仿真 fps 与上板实测 fps 差距较大
+.. data:: The simulated fps output in pulsar build differs significantly from the measured fps on the board.
 
-  需要针对模型具体分析, 一般差异原因有以下两点
+  There are two general reasons for the discrepancy, which are model specific
   
-    - ``neu fps`` 较大是由于板上 ``DDR`` 不受限, 而 ``pulsar`` 仿真严格卡了 ``DDR`` 带宽
-    - ``neu fps`` 较小是由于 ``Pulsar`` 仿真的 ``Cycle Model`` 中, 之前省去的小量(比如 ``LUT`` 配置时间), 在某些 ``case`` 下变得不可忽略
+    - ``neu fps`` is larger because the ``DDR`` on the board is not limited, while the ``pulsar`` simulation is strictly stuck on the ``DDR`` bandwidth
+    - The smaller ``neu fps`` is due to the fact that in the ``Cycle Model`` of the ``Pulsar`` simulation, the small amount previously omitted (e.g., ``LUT`` configuration time) becomes non-negligible in some ``cases``.
 
-.. data:: 如何在 Prototxt 中配置多 Batch
 
-  通过以下配置可以自主设置目标 ``batch_size`` 值.
+.. data:: How to configure multiple Batches in Prototxt
+
+  The following configuration allows you to set the target ``batch_size`` value independently.
 
   .. code-block:: bash
 
-    # 配置文件参数路径: pulsar_conf
+    # Path to configuration file parameters: pulsar_conf
     pulsar_conf {
-      batch_size: 2  # 编译模型推理时的 batch size 设置为 2
+      batch_size: 2 # Set the batch size to 2 for compiling model inference
     }
 
-.. data:: 如何在 Prototxt 中配置动态 Batch
+.. data:: How to configure dynamic Batch in Prototxt
 
-  通过以下配置可以实现动态 ``Batch``.
+  Dynamic ``Batch`` can be implemented by the following configuration.
 
   .. code-block:: bash
 
-    # 配置文件参数路径: pulsar_conf
+    # Configuration file parameter path: pulsar_conf
     pulsar_conf {
-      batch_size_option: BSO_DYNAMIC # 编译后的模型支持动态 batch
-      batch_size: 1                  # 实际推理时常用 batch_size
-      batch_size: 2                  # 实际推理时常用 batch_size
-      batch_size: 4                  # 最大 batch_size 为 4
+      batch_size_option: BSO_DYNAMIC # The compiled model supports dynamic batch
+      batch_size: 1 # Commonly used for practical inference batch_size
+      batch_size: 2 # Commonly used for practical inference batch_size
+      batch_size: 4 # The maximum batch_size is 4
     }
 
-  更详细的介绍可以参考 :ref:`pulsar_conf <pulsar_conf>`.
+  For a more detailed description, see :ref:`pulsar_conf <pulsar_conf>`.
 
-.. data:: onnx 模型输入是 RGB, 期望转出来的 joint 模型也是 RGB 输入, 应该如何操作
+.. data:: onnx model input is RGB, expect the joint model to be converted to RGB input as well, how should this work?
 
-  在配置文件中配置如下: 
+  Configure it in the configuration file as follows: 
 
   .. code-block:: bash
 
@@ -105,21 +106,21 @@ FAQ
       color_space: TENSOR_COLOR_SPACE_RGB
     }
 
-.. data:: 转出来的 .joint 模型可以像之前 .neu 模型上板跑么
+.. data:: Can the transferred .joint model run on the board like the previous .neu model?
 
-  ``.joint`` 可以像 ``.neu`` 一样上板跑. 事实上 ``.joint`` 模型是当前主流上板模型格式 ``.neu`` 模型是旧版格式, ``Pulsar`` 可以将 ``.neu`` 模型转换成 ``.joint`` 模型
+  ``.joint`` can run on the board just like ``.neu``. In fact, the ``.joint`` model is the current mainstream on-board model format and the ``.neu`` model is the old format, ``Pulsar`` can convert the ``.neu`` model to the ``.joint`` model
 
-.. data:: PTQ 能跑 GPU 吗
+.. data:: Can PTQ run GPUs?
 
-  工具链本身是支持的, 但 ``docker`` 本身出于大小考虑没用 ``nvidia`` 基础镜像
+  The toolchain itself supports it, but ``docker`` itself doesn't use the ``nvidia`` base image for size reasons
 
-.. data:: dataset_output_type 默认是 BGR, 是否指使用数据集里的图片校正时使用的是 BGR 格式输入到模型. 如果是的话 config.prototxt 里的 mean 和 std 是不是也要按照 BGR 顺序设置
+.. data:: dataset_output_type defaults to BGR, does it mean that the input to the model is in BGR format when using the image correction from the dataset. If so, should the mean and std in config.prototxt also be set in BGR order?
 
-  是需要按照顺序配置的. ``dataset_output_type`` 值是 ``BGR`` 代表编译时是按照 ``BGR`` 格式来读取的校正图片数据, 从而 ``mean/std`` 也要按 BGR 顺序设置
+  Yes, they need to be configured in that order. The ``dataset_output_type`` value is ``BGR`` which means that the calibration images are read in ``BGR`` format at compile time, so ``mean/std`` has to be set in BGR order as well.
 
-.. data::  如何在 config.prototxt 中配置 Q 值
+.. data:: How to configure the Q value in config.prototxt
 
-  可以通过以下配置完成.
+  This can be done with the following configuration.
 
   .. code-block:: bash
 
@@ -127,56 +128,56 @@ FAQ
       data_type: INT16
     }
 
-.. data:: Q 值是 int16 吗
+.. data:: Is the Q value int16?
 
-  ``Q`` 值不完全是 ``int16``. ``Q`` 值类型可配, 详见 :ref:`data_type类型 <data_type>`
+  ``Q`` values are not exactly ``int16``. The ``Q`` value types can be matched, see :ref:`data_type type <data_type>` for details.
 
-.. data:: Q 值的 CPU 子图时间怎么算
+.. data:: How to calculate CPU subgraph time for Q values
 
-  ``Q`` 值没有 ``CPU`` 子图, 但遗留了 ``/Q`` 的算术操作到客户的后处理代码
+  The ``Q`` value does not have a ``CPU`` subgraph, but the ``/Q`` arithmetic operation is left to the client's post-processing code
 
-.. data:: Q 值不还是要接 CPU 做除法, 没有省时间啊
+.. data:: The Q value still has to be connected to the CPU to do the division, which doesn't save time
 
-  是要接 ``CPU`` , 但 ``/Q`` 操作可以跟其他操作耦合起来, 大部分情况都是几乎免费的
+  Yes, you have to connect to the ``CPU``, but the ``/Q`` operation can be coupled with other operations, and in most cases it is almost free
 
-  比如检测后处理步骤 ``NMS`` 后需要做除法, 则 ``分母*Q`` 即可
+  For example, if you need to divide after the detection post-processing step ``NMS``, then ``Divisor*Q`` is sufficient
 
-  检测网络单独做大 ``tensor`` 乘法, 可能需要 ``NPU`` 数倍时间,  ``NMS`` 后计算量小
+  The detection network alone does a large ``tensor`` multiplication, which may take ``NPU`` several times as long, and ``NMS`` after a small computation
 
-.. data:: 转出模型的 Q 值接口是什么
+.. data:: what is the Q-value interface for the transfer model
 
-  直接 **上板执行** ``run_joint model.joint``, 在日志会有打印
+  directly **upboard execution** ``run_joint model.joint``, which will be printed in the log
 
-  ``joint sdk`` 中 ``C++`` 接口也有 ``nQuantizationValue``
+  The ``C++`` interface in the ``joint sdk`` also has ``nQuantizationValue``.
 
-.. data:: 工具链和硬件支持稀疏化加速吗
+.. data:: Does the toolchain and hardware support sparse acceleration?
 
-  支持结构化稀疏和低位宽, 非结构化稀疏没有硬件支持.
+  Structured sparsity and low bit-width are supported, unstructured sparsity is not supported by hardware.
 
-------------------------------
-查看 Inference Report 报表
-------------------------------
+------------------------------------------------------------
+View the Inference Report report
+------------------------------------------------------------
 
-根据 ``inference_report`` 能够:
+According to ``inference_report`` can:
 
-  - 分析推理的瓶颈: ``CONV``, ``DDR``, ``DMA``, ``算子``
-  - 统计算力损耗的来源
-  - 评估继续优化的空间
-  - 分析速度的优化方向
+  - Analyze inference bottlenecks: ``CONV``, ``DDR``, ``DMA``, ``arithmetic``
+  - Count the sources of arithmetic power loss
+  - Evaluate the space for continued optimization
+  - Analyze the direction of speed optimization
 
-在 ``pulsar build`` 命令运行完成后会在当前工作目录下保存一个 ``inference_report`` 文件夹,
+After the ``pulsar build`` command is run, an ``inference_report`` folder is saved in the current working directory,
 
-  - 该文件夹下包含一个或多个 ``part_x.lava`` 文件夹(其中 ``x`` 代表编号, 从 ``0`` 开始),
-  - 每一个 ``part_x.lava`` 文件夹下均包含一个 ``inference_report.log`` 文件,
-  - 对于小模型来讲通常只有一个 ``part_0.lava`` 文件夹以及一个 ``inference_report.log``, 
-  - 而当模型过大时, 会拆成多个子模型按顺序执行, 这样就会出现多个 ``part_0.lava`` 文件夹.
+  - This folder contains one or more ``part_x.lava`` folders (where ``x`` represents the number, starting from ``0``),
+  - Each ``part_x.lava`` folder contains an ``inference_report.log`` file,
+  - For small models there is usually only one ``part_0.lava`` folder and one ``inference_report.log``, 
+  - When the model is too large, it is split into multiple sub-models and executed sequentially, so that there are multiple ``part_0.lava`` folders.
 
-这种情况下, 这个模型的 ``tot_cyc`` 是这些单个子模型的 ``tot_cyc`` 之和, 与 ``DDR`` 
-交互传输的数据量 ``total_io_data_size`` 是这些单个子模型的 ``total_io_data_size`` 之和.
+In this case, the ``tot_cyc`` of this model is the sum of the ``tot_cyc`` of these individual submodels, and the ``DDR`` 
+The ``total_io_data_size`` is the sum of the ``total_io_data_size`` of these individual submodels.
 
 .. code-block:: sh
 
-  # 模型较小, 仅包含 part_0.lava 文件夹
+  # Smaller model, contains only the part_0.lava folder
   ➜  DEMO cd inference_report
   ➜  inference_report tree -L 2
   .
@@ -191,45 +192,45 @@ FAQ
 
   7 directories, 1 file
 
-查看 ``inference_report.log`` , 示例如下:
+View ``inference_report.log`` , the example is as follows:
 
 .. figure:: ../media/inference_report_example.png
     :alt: inference_report_example
     :align: center
 
-``inference_report.log`` 中包含一些自定义术语, 以下对部分术语进行 **名词解释**
+``inference_report.log`` contains some custom terms, some of which are explained below **Nomenclature**
 
-- ``ld``, 即从 ``DDR`` 读, 往 ``OCM`` 写
-- ``st``, 从 ``OCM`` 读, 往 ``DDR`` 写
-- ``mv``, 从 ``OCM`` 读, 往 ``OCM`` 写
+- ``ld``, i.e. read from ``DDR``, write to ``OCM``
+- ``st``, read from ``OCM``, write to ``DDR``
+- ``mv``, read from ``OCM``, write to ``OCM``
 
-通过一个典型的示例说明 ``inference_report.log`` 的作用, 如以下 ``case``:
+The role of ``inference_report.log`` is illustrated by a typical example, as in the following ``case``:
 
 .. figure:: ../media/typical_case.png
     :alt: inference_report_example
     :align: center
 
-在非虚拟 ``NPU`` 条件下, 如图(上图蓝框)所示, 有三类 ``EU`` 参与了模型推理, 分别为 ``conv-2cores``、 ``teng`` 以及 ``stream``, 
-而表格统计了 ``cycle`` 占比, 物理意义为每类 ``EU`` 实际运行的 ``cycle`` 除以模型推理实际花费的总 ``cycle``. 该 ``ratio`` 可直观反应 ``EU`` 的繁忙程度, 
-例如图中 ``teng`` 的 ``ratio`` 达到了 ``98%``, 几乎已经在满负荷工作.
+In the non-virtual ``NPU`` condition, as shown in the figure (blue box above), three types of ``EU`` are involved in model inference, namely ``conv-2cores``, ``teng`` and ``stream``, 
+and the table counts the ``cycle`` percentage, physically meaning the ``cycle`` actually run for each type of ``EU`` divided by the total ``cycle`` actually spent on model inference. This ``ratio`` provides a visual representation of how busy ``EU`` is, 
+For example, the ``ratio`` of ``teng`` in the figure reaches ``98%``, which is almost at full capacity.
 
-``teng`` 和 ``stream`` 具备在 ``DDR`` 上进行数据读写的能力. 在图的 ``profile stream EU`` 中详细统计了各类任务所占的比重, 
-可观察 ``ld_ratio/ld_param_ratio/st_ratio`` (上图红框) 的数值, 反应了对应 ``EU`` 进行 ``DDR`` 读写任务的时间及占比, 进而可分析 ``DDR`` 带宽压力.
+``teng`` and ``stream`` have the ability to read and write data on ``DDR``. A detailed breakdown of the proportion of each type of task is shown in the ``profile stream EU``, 
+The values of ``ld_ratio/ld_param_ratio/st_ratio`` (red box above) reflect the time and percentage of ``DDR`` read/write tasks performed by the corresponding ``EU``, which can be used to analyze the ``DDR`` bandwidth pressure.
 
-**总结**
+**Summary**
 
-一般而言, 下述条件可以反应模型在给定 ``DDR_BW`` 情况下的速度瓶颈:
+In general, the following conditions reflect the speed bottleneck of the model for a given ``DDR_BW`` case:
 
-  - ``teng/stream`` 的 ``ratio`` 占比较高, 且明显高于其他 ``EU`` 的 ``ratio``
-  - ``teng/stream`` 中的 ``ld_ratio/ld_param_ratio/st_ratio`` 占比较高
+  - The ``ratio`` of ``teng/stream`` is higher and significantly higher than the ``ratio`` of other ``EU``
+  - ``ld_ratio/ld_param_ratio/st_ratio`` is higher in ``teng/stream``
 
-反之, 下述条件可以反应模型的速度瓶颈为计算能力:
+Conversely, the following condition reflects that the speed bottleneck of the model is the computational power:
 
-  - ``conv`` 的 ``ratio`` 占比较高, 且明显高于其他 ``EU`` 的 ``ratio``
+  - The ``ratio`` of ``conv`` is higher than the ``ratio`` of the other ``EU``s, and significantly higher than the ``ratio`` of the other ``EU``.
 
-更具体点说, 图中模型 ``teng`` 的 ``ratio`` 为 ``98%``, 显著高于 ``conv`` 的 ``39.0%``; 
-而 ``teng`` 中的 ``DDR`` 读写任务的时间占比为 ``87.1% + 0.4% = 87.5%``, 占了该 ``EU`` 的主要工作时间, 因此认为该模型的速度瓶颈为 ``DDR`` 带宽。
+More specifically, the ``ratio`` of the model ``teng`` is ``98%``, which is significantly higher than the ``conv``'s ``39.0%``; 
+The ``DDR`` read-write task in ``teng`` is ``87.1% + 0.4% = 87.5%`` of the time, which accounts for the majority of the ``EU`` work time, so the speed bottleneck of this model is considered to be the ``DDR`` bandwidth.
 
-.. hint::
+... hint::
 
-  对于虚拟 ``NPU111`` 来讲, 其中只有两个 ``EU``, 分别为 ``conv-1core/teng``, 统计方式与非虚拟 ``NPU`` 一样.
+  For the virtual ``NPU111``, there are only two ``EU``s, ``conv-1core/teng``, which are counted in the same way as the non-virtual ``NPU``.
